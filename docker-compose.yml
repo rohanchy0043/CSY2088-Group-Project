@@ -1,0 +1,40 @@
+services:
+
+  php:
+    build: .
+    container_name: php_app
+    volumes:
+      - ./SmartHostelManagementSystem:/var/www/html
+    working_dir: /var/www/html
+    command: php -S 0.0.0.0:8000 -t /var/www/html/public /var/www/html/public/router.php
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mariadb:latest
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: jobs
+      MYSQL_USER: student
+      MYSQL_PASSWORD: student
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysqldata:/var/lib/mysql
+      - ./database.sql:/docker-entrypoint-initdb.d/database.sql 
+
+  adminer:
+    image: adminer:latest
+    container_name: adminer_smarthostelmanagementsystem
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+
+volumes:
+  mysqldata:
