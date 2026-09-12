@@ -29,11 +29,12 @@ function fieldValue($key) {
 		.auth-card { width: min(100%, 480px); background: #fff; padding: 36px; border-radius: 12px; box-shadow: 0 16px 45px rgba(10, 26, 43, .12); }
 		h1 { margin: 0 0 8px; color: #0a1a2b; font-family: Georgia, serif; font-size: 34px; }
 		.subtitle { margin: 0 0 28px; color: #64748b; }
-		label { display: block; margin: 16px 0 7px; font-weight: 600; }
+		form { display: grid; gap: 12px; }
+		label { display: block; margin: 0; font-weight: 600; }
 		input { width: 100%; padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 6px; font: inherit; }
 		input:focus { outline: 2px solid #2563eb; border-color: #2563eb; }
 		button, .account-choice { width: 100%; border: 0; border-radius: 6px; background: #0a1a2b; color: #fff; cursor: pointer; font-weight: 600; }
-		button { margin-top: 24px; padding: 13px; }
+		button { margin-top: 8px; padding: 13px; }
 		button:hover, .account-choice:hover { background: #1e3a5f; }
 		.account-choice { display: block; text-align: left; text-decoration: none; padding: 18px; margin: 14px 0; }
 		.account-choice strong { display: block; font-size: 16px; margin-bottom: 5px; }
@@ -64,7 +65,7 @@ function fieldValue($key) {
 			<a class="account-choice" href="/register.php?type=warden"><strong>🛡 Warden Account →</strong><span>For hostel wardens</span></a>
 		<?php else: ?>
 			<?php if ($type === 'warden'): ?><div class="notice">⚿ Invitation Required<br>Warden accounts require an invitation from a DormSync admin. Enter the code provided by the administrator.</div><?php endif; ?>
-			<form method="post" action="/register.php?type=<?= $type ?>">
+			<form method="post" action="/register.php?type=<?= $type ?>" class="auth-form">
 				<input type="hidden" name="account_type" value="<?= $type ?>">
 				<?php if ($type === 'warden'): ?>
 					<label for="invitation_code">Invitation Code</label>
@@ -79,7 +80,7 @@ function fieldValue($key) {
 				<label for="email">Email</label>
 				<input id="email" name="email" type="email" placeholder="<?= $type === 'warden' ? 'Invited email' : 'student@example.com' ?>" value="<?= fieldValue('email') ?>" required>
 				<label for="phone">Phone</label>
-				<input id="phone" name="phone" placeholder="+977" value="<?= fieldValue('phone') ?>">
+				<input id="phone" name="phone" type="tel" inputmode="numeric" placeholder="+977 9812345678" value="<?= fieldValue('phone') ?: '+977 ' ?>">
 				<label for="password">Password</label>
 				<div class="password-wrap"><input id="password" name="password" type="password" required><button class="password-toggle" type="button" onclick="togglePassword('password', this)">◉</button></div>
 				<label for="password_confirmation">Confirm Password</label>

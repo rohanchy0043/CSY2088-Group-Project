@@ -28,7 +28,7 @@ $sections = $sections ?? [];
     </style>
 </head>
 <body>
-<header class="topbar"><div class="brand">DormSync<sup>®</sup></div><a href="<?= htmlspecialchars($backUrl) ?>">Back to dashboard</a></header>
+<header class="topbar"><a href="<?= htmlspecialchars($backUrl) ?>">&larr; Back to dashboard</a></header>
 <main><h1><?= htmlspecialchars($title) ?></h1>
 <?php foreach ($sections as $section): ?><section class="section"><h2><?= htmlspecialchars($section['title']) ?></h2><?php if ($section['rows']): ?><div class="table-wrap"><table><thead><tr><?php foreach ($section['columns'] as $label => $key): ?><th><?= htmlspecialchars($label) ?></th><?php endforeach; ?></tr></thead><tbody><?php foreach ($section['rows'] as $row): ?><tr><?php foreach ($section['columns'] as $key): ?><td><?= htmlspecialchars((string) ($row[$key] ?? '-')) ?></td><?php endforeach; ?></tr><?php endforeach; ?></tbody></table></div><?php else: ?><p class="empty">No report data available.</p><?php endif; ?></section><?php endforeach; ?>
 </main>

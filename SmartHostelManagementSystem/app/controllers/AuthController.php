@@ -37,18 +37,21 @@ class AuthController {
         ]);
 
         if (!empty($errors)) {
-            redirectWithErrors('/login.php', $errors);
+            $_SESSION['auth_errors'] = $errors;
+            redirect('/login.php');
             return;
         }
 
         $user = User::findByEmail($email);
         if (!$user || !password_verify($password, $user['password_hash'])) {
-            redirectWithError('/login.php', 'Invalid email or password');
+            $_SESSION['auth_error'] = 'Invalid email or password';
+            redirect('/login.php');
             return;
         }
 
         if (($user['account_status'] ?? 'approved') !== 'approved') {
-            redirectWithError('/login.php', 'This account is not active. Contact an administrator.');
+            $_SESSION['auth_error'] = 'This account is not active. Contact an administrator.';
+            redirect('/login.php');
             return;
         }
 
@@ -73,6 +76,14 @@ class AuthController {
             'password' => 'required|min:6|confirmed',
             'phone' => 'numeric'
         ];
+
+        if (!empty($data['phone'])) {
+            $data['phone'] = preg_replace('/^\+977\s*/', '+977 ', trim($data['phone']));
+            $data['phone'] = preg_replace('/\s+/', ' ', $data['phone']);
+            if (preg_match('/^\+977\s?\d{10}$/', $data['phone'])) {
+                $data['phone'] = '+977 ' . preg_replace('/^\+977\s?/', '', $data['phone']);
+            }
+        }
 
         if ($type === 'student') {
             $rules['student_id'] = 'required|unique:students';
@@ -136,7 +147,8 @@ class AuthController {
         $message = $type === 'warden'
             ? 'Warden account created. You can now login.'
             : 'Student account created. Please login.';
-        redirectWithSuccess('/login.php', $message);
+        $_SESSION['auth_success'] = $message;
+        redirect('/login.php');
     }
 
     private static function ensureAuthSchema() {

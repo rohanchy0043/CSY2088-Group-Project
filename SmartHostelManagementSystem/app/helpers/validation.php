@@ -4,7 +4,7 @@
  */
 
 function validateRequired($value) {
-    return !empty(trim($value));
+    return $value !== null && $value !== '' && (!is_string($value) || trim($value) !== '');
 }
 
 function validateEmail($value) {
@@ -20,7 +20,12 @@ function validateMaxLength($value, $max) {
 }
 
 function validateNumeric($value) {
-    return is_numeric($value);
+    if ($value === null || $value === '') {
+        return true;
+    }
+
+    $normalized = preg_replace('/[^0-9.\-]/', '', (string) $value);
+    return $normalized !== '' && is_numeric($normalized);
 }
 
 function validateInArray($value, $array) {

@@ -22,6 +22,9 @@
     <p class="hero-description">
       DormSync is a modern hostel management system that simplifies room allocation, fee management, complaints, visitors, and hostel administration — all in one place.
     </p>
+    <div class="hero-buttons">
+      <a class="btn-secondary" href="#features">Explore Features</a>
+    </div>
   </div>
   <div class="scroll-indicator">
     <span>SCROLL DOWN</span>
@@ -51,26 +54,45 @@
 
 <!-- HOW IT WORKS -->
 <section class="how-it-works" id="how-it-works">
-  <div class="container">
-    <div class="section-header">
+  <div class="container how-it-works-grid">
+    <div class="how-it-works-intro">
       <span class="steps-eyebrow">HOW IT WORKS</span>
+      <h2>Simple Steps to a<br>Smarter Hostel</h2>
+      <p>Get started with DormSync in just a few easy steps and experience a seamless hostel management process.</p>
+      <a class="steps-button" href="#features">Learn More <span aria-hidden="true">→</span></a>
     </div>
+
     <div class="steps" data-journey>
-      <svg class="journey-line" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        <path class="journey-line-track" d="M 40 50 C 56 12, 78 88, 99 50" pathLength="1"></path>
-      </svg>
-      <div class="steps-intro">
-        <h2>Simple Steps to a<br>Smarter Hostel</h2>
-        <p>Get started with DormSync in just a few easy steps and experience a seamless hostel management process.</p>
-        <a class="steps-button" href="#features">Learn More <span aria-hidden="true">→</span></a>
+      <div class="step" data-delay="0">
+        <span class="step-number">01</span>
+        <span class="step-icon"><i class="fas fa-user-plus" aria-hidden="true"></i></span>
+        <h3>Sign Up</h3>
+        <p>Create your account and choose your role (Student / Warden / Admin).</p>
       </div>
-      <div class="step" data-delay="0"><span class="step-number">01</span><span class="step-icon"><i class="fas fa-user-plus" aria-hidden="true"></i></span><h3>Sign Up</h3><p>Create your account and choose your role.</p></div>
       <div class="step-arrow" aria-hidden="true">→</div>
-      <div class="step" data-delay="150"><span class="step-number">02</span><span class="step-icon"><i class="fas fa-cog" aria-hidden="true"></i></span><h3>Manage</h3><p>Handle rooms, fees, complaints and more through your dashboard.</p></div>
+
+      <div class="step" data-delay="150">
+        <span class="step-number">02</span>
+        <span class="step-icon"><i class="fas fa-gear" aria-hidden="true"></i></span>
+        <h3>Manage</h3>
+        <p>Handle rooms, fees, complaints and more through your dashboard.</p>
+      </div>
       <div class="step-arrow" aria-hidden="true">→</div>
-      <div class="step" data-delay="300"><span class="step-number">03</span><span class="step-icon"><i class="fas fa-clipboard-list" aria-hidden="true"></i></span><h3>Track</h3><p>Stay updated with real-time information and notifications.</p></div>
+
+      <div class="step" data-delay="300">
+        <span class="step-number">03</span>
+        <span class="step-icon"><i class="fas fa-clipboard-list" aria-hidden="true"></i></span>
+        <h3>Track</h3>
+        <p>Stay updated with real-time information and notifications.</p>
+      </div>
       <div class="step-arrow" aria-hidden="true">→</div>
-      <div class="step" data-delay="450"><span class="step-number">04</span><span class="step-icon"><i class="far fa-smile" aria-hidden="true"></i></span><h3>Enjoy</h3><p>A safer, smarter and more organized hostel experience.</p></div>
+
+      <div class="step" data-delay="450">
+        <span class="step-number">04</span>
+        <span class="step-icon"><i class="fas fa-face-smile" aria-hidden="true"></i></span>
+        <h3>Enjoy</h3>
+        <p>A safer, smarter and more organized hostel experience.</p>
+      </div>
     </div>
   </div>
 </section>

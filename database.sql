@@ -2,8 +2,8 @@
 -- Smart Hostel Management System - Database Schema
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS jobs;
-USE jobs;
+CREATE DATABASE IF NOT EXISTS SmartHostel;
+USE SmartHostel;
 
 -- ============================================================
 -- USERS TABLE
@@ -47,6 +47,20 @@ CREATE TABLE wardens (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+-- ============================================================
+-- SINGLE HOSTEL PROFILE
+-- ============================================================
+CREATE TABLE hostels (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    block VARCHAR(10) UNIQUE NOT NULL DEFAULT 'A',
+    status ENUM('active','inactive') NOT NULL DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+INSERT INTO hostels (name, block, status) VALUES ('Smart Hostel', 'A', 'active');
 
 -- ============================================================
 -- WARDEN INVITATIONS
@@ -102,8 +116,11 @@ CREATE TABLE fees (
     id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT NOT NULL,
     amount DECIMAL(10,2) NOT NULL,
+    paid_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
     due_date DATE NOT NULL,
-    status ENUM('paid','unpaid','overdue') DEFAULT 'unpaid',
+    fee_month DATE NULL,
+    status ENUM('paid','partial','unpaid','overdue') DEFAULT 'unpaid',
+    payment_type ENUM('monthly','multiple_months','full_year') NOT NULL DEFAULT 'monthly',
     paid_at TIMESTAMP NULL,
     payment_method VARCHAR(50),
     transaction_id VARCHAR(100),
@@ -111,6 +128,35 @@ CREATE TABLE fees (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+);
+
+CREATE TABLE fee_structures (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    monthly_amount DECIMAL(10,2) NOT NULL,
+    due_day TINYINT UNSIGNED NOT NULL,
+    effective_from DATE NOT NULL,
+    status ENUM('active','inactive') NOT NULL DEFAULT 'active',
+    created_by INT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE fee_payments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    fee_id INT NOT NULL,
+    student_id INT NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    payment_date DATE NOT NULL,
+    payment_method VARCHAR(50) NOT NULL DEFAULT 'cash',
+    receipt_number VARCHAR(100) NULL,
+    notes TEXT,
+    recorded_by INT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (fee_id) REFERENCES fees(id) ON DELETE CASCADE,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+    FOREIGN KEY (recorded_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
 -- ============================================================
@@ -176,6 +222,67 @@ CREATE TABLE notifications (
 );
 
 -- ============================================================
+-- MEAL MANAGEMENT TABLES
+-- ============================================================
+CREATE TABLE meal_menus (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    meal_type ENUM('breakfast','lunch','dinner') NOT NULL,
+    menu_date DATE NOT NULL,
+    items TEXT NOT NULL,
+    created_by INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY meal_menu_day (meal_type, menu_date),
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE meal_attendance (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    attendance_date DATE NOT NULL,
+    meal_type ENUM('breakfast','lunch','dinner') NOT NULL,
+    status ENUM('present','absent') NOT NULL DEFAULT 'present',
+    marked_by INT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY student_meal_day (student_id, attendance_date, meal_type),
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+    FOREIGN KEY (marked_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE meal_feedback (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    meal_type ENUM('breakfast','lunch','dinner') NOT NULL,
+    feedback_date DATE NOT NULL,
+    rating TINYINT NOT NULL,
+    taste_rating TINYINT NOT NULL DEFAULT 0,
+    quality_rating TINYINT NOT NULL DEFAULT 0,
+    quantity_rating TINYINT NOT NULL DEFAULT 0,
+    hygiene_rating TINYINT NOT NULL DEFAULT 0,
+    comment TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+);
+
+CREATE TABLE food_complaints (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    meal_type ENUM('breakfast','lunch','dinner') NOT NULL DEFAULT 'breakfast',
+    category VARCHAR(80) NOT NULL,
+    complaint_date DATE NOT NULL,
+    subject VARCHAR(150) NOT NULL,
+    description TEXT NOT NULL,
+    photo_path VARCHAR(255) NULL,
+    status ENUM('pending','in-progress','resolved') NOT NULL DEFAULT 'pending',
+    resolution_notes TEXT,
+    resolved_by INT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+    FOREIGN KEY (resolved_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- ============================================================
 -- LOGS TABLE
 -- ============================================================
 CREATE TABLE logs (
@@ -199,44 +306,19 @@ INSERT INTO fee_categories (name, description, amount) VALUES
 ('Electricity', 'Monthly electricity charges', 500.00),
 ('Maintenance', 'Annual maintenance fee', 1000.00);
 
--- Insert users (password = 'password')
-INSERT INTO users (username, email, password_hash, role, full_name, phone) VALUES
-('admin', 'admin@hostel.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'Admin User', '9800000000'),
-('warden1', 'warden1@hostel.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'warden', 'Hari Gurung', '9800000001'),
-('student1', 'student1@hostel.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'student', 'Ram Sharma', '9800000002'),
-('student2', 'student2@hostel.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'student', 'Sita Thapa', '9800000003');
-
--- Insert students
-INSERT INTO students (user_id, student_id, room_id, parent_contact, address, emergency_contact) VALUES
-(3, 'S001', NULL, '9800000010', 'Kathmandu, Nepal', '9800000011'),
-(4, 'S002', NULL, '9800000012', 'Lalitpur, Nepal', '9800000013');
-
--- Insert wardens
-INSERT INTO wardens (user_id, assigned_block) VALUES
-(2, 'Block A');
-
--- Insert rooms
-INSERT INTO rooms (room_number, block, floor, capacity, current_occupancy, status) VALUES
-('101', 'A', 1, 2, 0, 'available'),
-('102', 'A', 1, 2, 0, 'available'),
-('103', 'A', 1, 2, 0, 'available'),
-('201', 'A', 2, 3, 0, 'available'),
-('202', 'A', 2, 3, 0, 'available'),
-('301', 'B', 3, 2, 0, 'available'),
-('302', 'B', 3, 2, 0, 'available');
-
--- Insert fees
-INSERT INTO fees (student_id, amount, due_date, status) VALUES
-(1, 5000.00, '2026-10-01', 'unpaid'),
-(1, 3000.00, '2026-10-01', 'unpaid'),
-(2, 5000.00, '2026-10-01', 'paid');
-
--- Insert complaints
-INSERT INTO complaints (student_id, category, subject, description, status, priority) VALUES
-(1, 'Plumbing', 'Water leakage', 'Pipe burst in the bathroom, water is flooding', 'pending', 'high'),
-(2, 'Electrical', 'Light not working', 'Room light is flickering and sometimes goes off', 'in-progress', 'medium');
-
--- Insert notifications
-INSERT INTO notifications (user_id, title, message, type) VALUES
-(3, 'Welcome!', 'Welcome to DormSync hostel management system.', 'info'),
-(4, 'Fee Reminder', 'Your hostel fee is due on 2026-10-01.', 'warning');
+-- Remove all user records and dependent demo data
+DELETE FROM notifications;
+DELETE FROM food_complaints;
+DELETE FROM meal_feedback;
+DELETE FROM meal_attendance;
+DELETE FROM meal_menus;
+DELETE FROM visitors;
+DELETE FROM complaints;
+DELETE FROM fee_payments;
+DELETE FROM fees;
+DELETE FROM fee_structures;
+DELETE FROM room_allocations;
+DELETE FROM logs;
+DELETE FROM wardens;
+DELETE FROM students;
+DELETE FROM users;

@@ -1,5 +1,5 @@
 <?php
-$labels = ['notifications' => 'Notices', 'profile' => 'Profile', 'settings' => 'Settings'];
+$labels = ['notifications' => 'Notices', 'profile' => 'Profile'];
 $title = $labels[$section];
 ?>
 <!DOCTYPE html>
@@ -28,7 +28,7 @@ $title = $labels[$section];
     </style>
 </head>
 <body>
-<header class="topbar"><div class="brand">DormSync<sup>®</sup></div><a href="/warden/dashboard">Back to dashboard</a></header>
+<header class="topbar"><a href="/warden/dashboard">&larr; Back to dashboard</a></header>
 <main>
     <h1><?= htmlspecialchars($title) ?></h1>
     <p class="intro">Manage your warden account and hostel updates.</p>
@@ -39,10 +39,6 @@ $title = $labels[$section];
             <?php foreach ($items as $item): ?><div class="row"><span class="label"><?= htmlspecialchars($item['title']) ?></span><span class="value"><?= htmlspecialchars($item['message']) ?></span></div><?php endforeach; ?>
         <?php elseif ($section === 'profile'): ?>
             <?php $success = sessionSuccess(); $errors = sessionErrors(); if ($success): ?><p><?= htmlspecialchars($success) ?></p><?php endif; foreach ($errors as $fieldErrors): foreach ((array) $fieldErrors as $error): ?><p><?= htmlspecialchars($error) ?></p><?php endforeach; endforeach; ?><form method="post" action="/warden/profile-update"><label>Full name</label><input name="full_name" value="<?= htmlspecialchars($warden['full_name'] ?? currentUserFullName()) ?>" required><label>Phone</label><input name="phone" value="<?= htmlspecialchars($warden['phone'] ?? '') ?>"><button type="submit">Save profile</button></form><div class="row"><span class="label">Email</span><span class="value"><?= htmlspecialchars($warden['email'] ?? currentUserEmail()) ?></span></div><div class="row"><span class="label">Assigned block</span><span class="value"><?= htmlspecialchars($warden['assigned_block'] ?? '-') ?></span></div>
-        <?php elseif ($section === 'settings'): ?>
-            <div class="row"><span class="label">Account status</span><span class="value">Active</span></div>
-            <div class="row"><span class="label">Assigned block</span><span class="value"><?= htmlspecialchars($warden['assigned_block'] ?? '-') ?></span></div>
-            <div class="row"><span class="label">Role</span><span class="value">Warden</span></div>
         <?php elseif ($items): ?>
             <?php foreach ($items as $item): ?><div class="row"><span class="label"><?= htmlspecialchars($item['title']) ?></span><span class="value"><?= htmlspecialchars($item['message']) ?></span></div><?php endforeach; ?>
         <?php else: ?>

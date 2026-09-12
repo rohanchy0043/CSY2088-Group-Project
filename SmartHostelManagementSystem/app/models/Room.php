@@ -65,7 +65,7 @@ class Room {
     }
 
     public static function countOccupied() {
-        return db()->query("SELECT COUNT(*) FROM rooms WHERE status = 'occupied'")->fetchColumn();
+        return db()->query("SELECT COUNT(*) FROM rooms WHERE current_occupancy > 0")->fetchColumn();
     }
 
     public static function countMaintenance() {
@@ -74,8 +74,9 @@ class Room {
 
     public static function getOccupancyRate() {
         $total = self::count();
-        $occupied = self::countOccupied();
-        return $total > 0 ? round(($occupied / $total) * 100, 2) : 0;
+        $capacity = (int) db()->query("SELECT COALESCE(SUM(capacity), 0) FROM rooms")->fetchColumn();
+        $occupancy = (int) db()->query("SELECT COALESCE(SUM(current_occupancy), 0) FROM rooms")->fetchColumn();
+        return $capacity > 0 ? round(($occupancy / $capacity) * 100, 2) : 0;
     }
 
     public static function updateOccupancy($roomId) {

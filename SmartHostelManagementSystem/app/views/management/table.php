@@ -8,9 +8,13 @@ $createUrl = $createUrl ?? null;
 $success = sessionSuccess();
 $error = sessionError();
 $errors = sessionErrors();
-function managementValue($value) {
+function managementValue($value, $key) {
     if ($value === null || $value === '') return '-';
-    if (is_numeric($value) && is_float((float) $value)) return number_format((float) $value, 2);
+    if ($key === 'amount') return 'NPR ' . number_format((float) $value, 2);
+    if (in_array($key, ['due_date', 'paid_at', 'created_at'], true)) {
+        return date('M j, Y', strtotime((string) $value));
+    }
+    if ($key === 'status') return ucwords(str_replace(['-', '_'], ' ', (string) $value));
     return (string) $value;
 }
 ?>
@@ -46,7 +50,7 @@ function managementValue($value) {
     </style>
 </head>
 <body>
-<header class="topbar"><div class="brand">DormSync<sup>®</sup></div><a href="<?= htmlspecialchars($backUrl) ?>">Back to dashboard</a></header>
+<header class="topbar"><a href="<?= htmlspecialchars($backUrl) ?>">&larr; Back to dashboard</a></header>
 <main>
     <h1><?= htmlspecialchars($title) ?></h1>
     <p class="intro">Live records from the hostel management system.</p>
@@ -58,7 +62,7 @@ function managementValue($value) {
     <section class="panel">
         <?php if ($rows): ?>
         <div class="table-wrap"><table><thead><tr><?php foreach ($columns as $label => $key): ?><th><?= htmlspecialchars($label) ?></th><?php endforeach; ?><?php if ($resource): ?><th>Actions</th><?php endif; ?></tr></thead><tbody>
-        <?php foreach ($rows as $row): ?><tr><?php foreach ($columns as $key): ?><td class="<?= str_contains(strtolower((string) $key), 'status') ? 'status' : '' ?>"><?= htmlspecialchars(managementValue($row[$key] ?? null)) ?></td><?php endforeach; ?><?php if ($resource): ?><td><div class="actions"><?php if ($resource === 'rooms'): ?><a class="action" href="/warden/room-edit/<?= (int) $row['id'] ?>">Edit</a><form method="post" action="/warden/room-delete/<?= (int) $row['id'] ?>"><button class="action danger" type="submit">Delete</button></form><?php elseif ($resource === 'fees' && ($row['status'] ?? '') !== 'paid'): ?><form method="post" action="/warden/fee-mark-paid/<?= (int) $row['id'] ?>"><button class="action" type="submit">Mark paid</button></form><?php elseif ($resource === 'complaints'): ?><a class="action" href="/warden/complaint-view/<?= (int) $row['id'] ?>">Manage</a><?php elseif ($resource === 'visitors'): ?><?php if (($row['status'] ?? '') === 'pending'): ?><form method="post" action="/warden/visitor-approve/<?= (int) $row['id'] ?>"><input type="hidden" name="action" value="approve"><button class="action" type="submit">Approve</button></form><form method="post" action="/warden/visitor-approve/<?= (int) $row['id'] ?>"><input type="hidden" name="action" value="reject"><button class="action danger" type="submit">Reject</button></form><?php elseif (($row['status'] ?? '') === 'approved'): ?><form method="post" action="/warden/visitor-check-in/<?= (int) $row['id'] ?>"><button class="action" type="submit">Check in</button></form><?php elseif (($row['status'] ?? '') === 'checked_in'): ?><form method="post" action="/warden/visitor-check-out/<?= (int) $row['id'] ?>"><button class="action" type="submit">Check out</button></form><?php endif; ?><?php endif; ?></div></td><?php endif; ?></tr><?php endforeach; ?>
+        <?php foreach ($rows as $row): ?><tr><?php foreach ($columns as $key): ?><td class="<?= str_contains(strtolower((string) $key), 'status') ? 'status' : '' ?>"><?= htmlspecialchars(managementValue($row[$key] ?? null, $key)) ?></td><?php endforeach; ?><?php if ($resource): ?><td><div class="actions"><?php if ($resource === 'rooms'): ?><a class="action" href="/warden/room-edit/<?= (int) $row['id'] ?>">Edit</a><form method="post" action="/warden/room-delete/<?= (int) $row['id'] ?>"><button class="action danger" type="submit">Delete</button></form><?php elseif ($resource === 'fees' && ($row['status'] ?? '') !== 'paid'): ?><form method="post" action="/warden/fee-mark-paid/<?= (int) $row['id'] ?>"><button class="action" type="submit">Mark paid</button></form><?php elseif ($resource === 'complaints'): ?><a class="action" href="/warden/complaint-view/<?= (int) $row['id'] ?>">Manage</a><?php elseif ($resource === 'visitors'): ?><?php if (($row['status'] ?? '') === 'pending'): ?><form method="post" action="/warden/visitor-approve/<?= (int) $row['id'] ?>"><input type="hidden" name="action" value="approve"><button class="action" type="submit">Approve</button></form><form method="post" action="/warden/visitor-approve/<?= (int) $row['id'] ?>"><input type="hidden" name="action" value="reject"><button class="action danger" type="submit">Reject</button></form><?php elseif (($row['status'] ?? '') === 'approved'): ?><form method="post" action="/warden/visitor-check-in/<?= (int) $row['id'] ?>"><button class="action" type="submit">Check in</button></form><?php elseif (($row['status'] ?? '') === 'checked_in'): ?><form method="post" action="/warden/visitor-check-out/<?= (int) $row['id'] ?>"><button class="action" type="submit">Check out</button></form><?php endif; ?><?php endif; ?></div></td><?php endif; ?></tr><?php endforeach; ?>
         </tbody></table></div>
         <?php else: ?><p class="empty">No records are available yet.</p><?php endif; ?>
     </section>

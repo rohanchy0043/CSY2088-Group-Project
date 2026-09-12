@@ -27,6 +27,8 @@ function wardenDashboardStatus($status) {
 		.nav a { border-radius: 7px; display: flex; gap: 13px; padding: 11px 14px; font-size: 14px; }
 		.nav a:hover, .nav a.active { background: #263e66; color: #fff; }
 		.nav-icon { width: 18px; text-align: center; }
+		.nav-item { align-items: center; display: flex; flex: 1; justify-content: space-between; }
+		.badge { background: #ef4444; border-radius: 999px; color: #fff; font-size: 10px; font-weight: 700; line-height: 18px; min-width: 18px; padding: 0 5px; text-align: center; }
 		.logout { color: #adc0db; }
 		.main { flex: 1; min-width: 0; }
 		.topbar { align-items: center; background: var(--surface); border-bottom: 1px solid var(--line); display: flex; justify-content: flex-end; min-height: 68px; padding: 0 34px; }
@@ -74,21 +76,21 @@ function wardenDashboardStatus($status) {
 			<div class="nav-label">Hostel</div>
 			<a href="/warden/students"><span class="nav-icon">♙</span>Students</a>
 			<a href="/warden/rooms"><span class="nav-icon">▣</span>Rooms</a>
-			<a href="/warden/visitors"><span class="nav-icon">♧</span>Visitors</a>
-			<a href="/warden/notifications"><span class="nav-icon">⚑</span>Notices</a>
+			<a href="/warden/meals"><span class="nav-icon">🍽</span>Meals</a>
+			<a href="/warden/visitors"><span class="nav-icon">♧</span><span class="nav-item">Visitors<?php if (($stats['pending_visitors_badge'] ?? 0) > 0): ?><span class="badge"><?= (int) $stats['pending_visitors_badge'] ?></span><?php endif; ?></span></a>
+			<a href="/warden/notifications"><span class="nav-icon">⚑</span><span class="nav-item">Notifications<?php if (($notificationCount ?? 0) > 0): ?><span class="badge"><?= (int) $notificationCount ?></span><?php endif; ?></span></a>
 			<div class="nav-label">Management</div>
 			<a href="/warden/fees"><span class="nav-icon">₹</span>Fees</a>
-			<a href="/warden/complaints"><span class="nav-icon">▤</span>Complaints</a>
+			<a href="/warden/complaints"><span class="nav-icon">▤</span><span class="nav-item">Complaints<?php if (($stats['pending_complaints_badge'] ?? 0) > 0): ?><span class="badge"><?= (int) $stats['pending_complaints_badge'] ?></span><?php endif; ?></span></a>
 			<div class="nav-label">Reports</div>
 			<a href="/warden/reports"><span class="nav-icon">▥</span>Reports</a>
 			<div class="nav-label">Account</div>
 			<a href="/warden/profile"><span class="nav-icon">◎</span>Profile</a>
-			<a href="/warden/settings"><span class="nav-icon">⚙</span>Settings</a>
 			<a class="logout" href="/logout.php"><span class="nav-icon">↪</span>Logout</a>
 		</nav>
 	</aside>
 	<div class="main">
-		<header class="topbar"><div class="account"><span></span><span class="avatar"><?= htmlspecialchars(strtoupper(substr($name, 0, 1))) ?></span><span><?= htmlspecialchars($name) ?>⌄</span></div></header>
+		<header class="topbar"><div class="account"><span></span><span class="avatar"><?= htmlspecialchars(strtoupper(substr($name, 0, 1))) ?></span><span><?= htmlspecialchars($name) ?></span></div></header>
 		<main class="dashboard">
 			<section class="welcome"><h1>Good morning, <?= htmlspecialchars($name) ?></h1><p>Here's your hostel overview.</p></section>
 			<section class="stats">

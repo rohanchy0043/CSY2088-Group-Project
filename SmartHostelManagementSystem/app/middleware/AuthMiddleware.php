@@ -12,6 +12,12 @@ class AuthMiddleware {
             redirect('/login.php');
             exit;
         }
+
+        // Keep authorization data current when an account role or status changes.
+        $_SESSION['role'] = $user['role'];
+        $_SESSION['username'] = $user['username'];
+        $_SESSION['email'] = $user['email'];
+        $_SESSION['full_name'] = $user['full_name'];
         return true;
     }
 }

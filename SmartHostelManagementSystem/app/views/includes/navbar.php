@@ -8,7 +8,7 @@
       <li><a href="/about.php">About</a></li>
       <li><a href="/contact.php">Contact</a></li>
       <li><a href="/login.php" class="cta-button">Login</a></li>
-      <li><a href="/login.php" class="cta-button">Get Started</a></li>
+      <li><a href="/register.php" class="cta-button">Get Started <span aria-hidden="true">→</span></a></li>
     </ul>
     <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
       <span class="bar"></span>

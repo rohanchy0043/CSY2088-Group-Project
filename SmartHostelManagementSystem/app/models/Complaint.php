@@ -4,10 +4,11 @@ require_once __DIR__ . '/../../config/constants.php';
 
 class Complaint {
     public static function find($id) {
-        $stmt = db()->prepare("SELECT c.*, s.full_name, s.student_id, u.username as resolved_by_name 
-                               FROM complaints c 
-                               JOIN students s ON c.student_id = s.id 
-                               LEFT JOIN users u ON c.resolved_by = u.id 
+        $stmt = db()->prepare("SELECT c.*, s.id as student_record_id, student_user.full_name, s.student_id, resolver.username as resolved_by_name 
+                       FROM complaints c 
+                       JOIN students s ON c.student_id = s.id 
+                       JOIN users student_user ON s.user_id = student_user.id
+                       LEFT JOIN users resolver ON c.resolved_by = resolver.id 
                                WHERE c.id = ?");
         $stmt->execute([$id]);
         return $stmt->fetch();
@@ -70,13 +71,13 @@ class Complaint {
     }
 
     public static function getByStatus($status) {
-        $stmt = db()->prepare("SELECT c.*, s.full_name FROM complaints c JOIN students s ON c.student_id = s.id WHERE c.status = ? ORDER BY c.created_at DESC");
+        $stmt = db()->prepare("SELECT c.*, student_user.full_name FROM complaints c JOIN students s ON c.student_id = s.id JOIN users student_user ON s.user_id = student_user.id WHERE c.status = ? ORDER BY c.created_at DESC");
         $stmt->execute([$status]);
         return $stmt->fetchAll();
     }
 
     public static function getByPriority($priority) {
-        $stmt = db()->prepare("SELECT c.*, s.full_name FROM complaints c JOIN students s ON c.student_id = s.id WHERE c.priority = ? AND c.status != 'resolved' ORDER BY c.created_at DESC");
+        $stmt = db()->prepare("SELECT c.*, student_user.full_name FROM complaints c JOIN students s ON c.student_id = s.id JOIN users student_user ON s.user_id = student_user.id WHERE c.priority = ? AND c.status != 'resolved' ORDER BY c.created_at DESC");
         $stmt->execute([$priority]);
         return $stmt->fetchAll();
     }

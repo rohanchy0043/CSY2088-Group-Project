@@ -29,6 +29,8 @@ function studentDashboardStatus($status) {
 		.nav a { border-radius: 7px; display: flex; gap: 13px; padding: 12px 14px; font-size: 14px; }
 		.nav a:hover, .nav a.active { background: #263e66; color: #fff; }
 		.nav-icon { width: 18px; text-align: center; }
+		.nav-item { align-items: center; display: flex; flex: 1; justify-content: space-between; }
+		.badge { background: #ef4444; border-radius: 999px; color: #fff; font-size: 10px; font-weight: 700; line-height: 18px; min-width: 18px; padding: 0 5px; text-align: center; }
 		.nav-divider { border-top: 1px solid #304565; margin: 20px 10px 14px; }
 		.logout { color: #adc0db; }
 		.main { flex: 1; min-width: 0; }
@@ -70,18 +72,17 @@ function studentDashboardStatus($status) {
 		<nav class="nav" aria-label="Student navigation">
 			<a class="active" href="/student/dashboard"><span class="nav-icon">⌂</span>Dashboard</a>
 			<a href="/student/room"><span class="nav-icon">▣</span>My Room</a>
+			<a href="/student/meals"><span class="nav-icon">🍽</span>Meals</a>
 			<a href="/student/fees"><span class="nav-icon">₹</span>Fees</a>
-			<a href="/student/complaints"><span class="nav-icon">▤</span>Complaints</a>
+			<a href="/student/complaints"><span class="nav-icon">▤</span><span class="nav-item">Complaints<?php if (($stats['pending_complaints_badge'] ?? 0) > 0): ?><span class="badge"><?= (int) $stats['pending_complaints_badge'] ?></span><?php endif; ?></span></a>
+			<a href="/student/visitors"><span class="nav-icon">♧</span><span class="nav-item">Visitors<?php if (($visitorCountBadge ?? 0) > 0): ?><span class="badge"><?= (int) $visitorCountBadge ?></span><?php endif; ?></span></a>
+			<a href="/student/notifications"><span class="nav-icon">⚑</span><span class="nav-item">Notifications<?php if (($stats['notifications'] ?? 0) > 0): ?><span class="badge"><?= (int) $stats['notifications'] ?></span><?php endif; ?></span></a>
 			<a href="/student/profile"><span class="nav-icon">◎</span>Profile</a>
-			<a href="/student/visitors"><span class="nav-icon">♧</span>Visitors</a>
-			<a href="/student/notifications"><span class="nav-icon">⚑</span>Notices</a>
-			<div class="nav-divider"></div>
-			<a href="/student/profile"><span class="nav-icon">⚙</span>Settings</a>
 			<a class="logout" href="/logout.php"><span class="nav-icon">↪</span>Logout</a>
 		</nav>
 	</aside>
 	<div class="main">
-		<header class="topbar"><div class="account"><span></span><span class="avatar"><?= htmlspecialchars(strtoupper(substr($name, 0, 1))) ?></span><span><?= htmlspecialchars($name) ?>⌄</span></div></header>
+		<header class="topbar"><div class="account"><span></span><span class="avatar"><?= htmlspecialchars(strtoupper(substr($name, 0, 1))) ?></span><span><?= htmlspecialchars($name) ?></span></div></header>
 		<main class="dashboard">
 			<section class="welcome"><h1>Good morning, <?= htmlspecialchars($name) ?> </h1><p>Here's what's happening with your hostel.</p></section>
 			<section class="stats">
@@ -92,11 +93,11 @@ function studentDashboardStatus($status) {
 			</section>
 			<section class="content-grid">
 				<article class="panel"><h2>Room Information</h2><div class="detail-row"><span>Room</span><span><?= htmlspecialchars($roomLabel) ?></span></div><div class="detail-row"><span>Block</span><span><?= htmlspecialchars($student['block'] ?? '-') ?></span></div><div class="detail-row"><span>Status</span><span><?= htmlspecialchars($roomStatus) ?></span></div></article>
-				<article class="panel"><h2>Fee Status</h2><?php if ($fee): ?><div class="detail-row"><span><?= htmlspecialchars($fee['due_date'] ? date('F', strtotime($fee['due_date'])) : 'Fee') ?></span><span>₹<?= number_format((float) $fee['amount'], 0) ?></span></div><div class="detail-row"><span>Due</span><span><?= studentDashboardDate($fee['due_date']) ?></span></div><div class="detail-row"><span>Status</span><span class="status"><?= htmlspecialchars(studentDashboardStatus($fee['status'])) ?></span></div><?php else: ?><p class="empty">No fee records yet.</p><?php endif; ?></article>
+				<article class="panel"><h2>Fee Status</h2><?php if ($fee): ?><div class="detail-row"><span><?= htmlspecialchars($fee['due_date'] ? date('F Y', strtotime($fee['fee_month'] ?: $fee['due_date'])) : 'Fee') ?></span><span>₹<?= number_format((float) $fee['amount'], 0) ?></span></div><div class="detail-row"><span>Paid</span><span>₹<?= number_format((float) ($fee['paid_amount'] ?? 0), 0) ?></span></div><div class="detail-row"><span>Remaining</span><span>₹<?= number_format((float) ($fee['remaining_amount'] ?? $fee['amount']), 0) ?></span></div><div class="detail-row"><span>Status</span><span class="status"><?= htmlspecialchars(strtoupper($fee['status'])) ?></span></div><?php else: ?><p class="empty">No fee records yet.</p><?php endif; ?></article>
 			</section>
 			<section class="section-row">
 				<article class="panel"><h2>Recent Complaints</h2><div class="list"><?php if ($recentComplaints): ?><?php foreach ($recentComplaints as $complaint): ?><div class="list-item"><strong><?= htmlspecialchars($complaint['subject']) ?></strong><small><?= htmlspecialchars(studentDashboardStatus($complaint['status'])) ?> · <?= studentDashboardDate($complaint['created_at']) ?></small></div><?php endforeach; ?><?php else: ?><p class="empty">No complaints yet.</p><?php endif; ?></div></article>
-				<article class="panel"><h2>Recent Notices</h2><div class="list"><?php if ($recentNotices): ?><?php foreach ($recentNotices as $notice): ?><div class="list-item"><strong><?= htmlspecialchars($notice['title']) ?></strong><small><?= htmlspecialchars($notice['message']) ?></small></div><?php endforeach; ?><?php else: ?><p class="empty">No new notices.</p><?php endif; ?></div></article>
+				<article class="panel"><h2>Recent Notifications</h2><div class="list"><?php if ($recentNotices): ?><?php foreach ($recentNotices as $notice): ?><div class="list-item"><strong><?= htmlspecialchars($notice['title']) ?></strong><small><?= htmlspecialchars($notice['message']) ?></small></div><?php endforeach; ?><?php else: ?><p class="empty">No new notifications.</p><?php endif; ?></div></article>
 			</section>
 		</main>
 	</div>

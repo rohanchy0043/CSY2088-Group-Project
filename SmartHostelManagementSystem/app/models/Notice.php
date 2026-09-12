@@ -31,15 +31,15 @@ class Notice {
 
     public static function forWarden($block) {
         self::ensureTable();
-        $stmt = db()->prepare("SELECT n.*, u.full_name AS author FROM notices n JOIN users u ON n.created_by = u.id WHERE n.scope = 'hostel' AND (n.block IS NULL OR n.block = ?) ORDER BY n.created_at DESC");
-        $stmt->execute([$block]);
+        $stmt = db()->prepare("SELECT n.*, u.full_name AS author FROM notices n JOIN users u ON n.created_by = u.id WHERE n.scope = 'hostel' ORDER BY n.created_at DESC");
+        $stmt->execute();
         return $stmt->fetchAll();
     }
 
     public static function forStudent($block = null) {
         self::ensureTable();
-        $stmt = db()->prepare("SELECT * FROM notices WHERE published_at IS NOT NULL AND published_at <= NOW() AND (scope = 'system' OR (scope = 'hostel' AND (block IS NULL OR block = ?))) ORDER BY published_at DESC");
-        $stmt->execute([$block]);
+        $stmt = db()->prepare("SELECT * FROM notices WHERE published_at IS NOT NULL AND published_at <= NOW() AND scope IN ('system', 'hostel') ORDER BY published_at DESC");
+        $stmt->execute();
         return $stmt->fetchAll();
     }
 

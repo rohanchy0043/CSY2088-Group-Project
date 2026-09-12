@@ -67,6 +67,15 @@ function logoutUser() {
     session_destroy();
 }
 
+function sidebarBadgeCount($key, $count) {
+    $seen = $_SESSION['sidebar_seen'][$key] ?? 0;
+    return max(0, (int) $count - (int) $seen);
+}
+
+function markSidebarSeen($key, $count) {
+    $_SESSION['sidebar_seen'][$key] = (int) $count;
+}
+
 function getRedirectUrl() {
     $role = currentUserRole();
     $urls = [

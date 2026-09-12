@@ -24,6 +24,8 @@ function adminDashboardDate($date) {
 		.nav a { border-radius: 7px; display: flex; gap: 13px; padding: 11px 14px; font-size: 14px; }
 		.nav a:hover, .nav a.active { background: #263e66; color: #fff; }
 		.nav-icon { width: 18px; text-align: center; }
+		.nav-item { align-items: center; display: flex; flex: 1; justify-content: space-between; }
+		.badge { background: #ef4444; border-radius: 999px; color: #fff; font-size: 10px; font-weight: 700; line-height: 18px; min-width: 18px; padding: 0 5px; text-align: center; }
 		.logout { color: #adc0db; }
 		.main { flex: 1; min-width: 0; }
 		.topbar { align-items: center; background: var(--surface); border-bottom: 1px solid var(--line); display: flex; justify-content: flex-end; min-height: 68px; padding: 0 34px; }
@@ -74,34 +76,34 @@ function adminDashboardDate($date) {
 			<a href="/admin/students"><span class="nav-icon">♙</span>Students</a>
 			<a href="/admin/wardens"><span class="nav-icon">♜</span>Wardens</a>
 			<div class="nav-label">Hostels</div>
-			<a href="/admin/hostels"><span class="nav-icon">▣</span>Hostels</a>
 			<a href="/admin/rooms"><span class="nav-icon">▤</span>Rooms</a>
+			<a href="/admin/meals"><span class="nav-icon">🍽</span>Meals</a>
+			<a href="/admin/meal-attendance"><span class="nav-icon">▥</span>Meal attendance</a>
 			<div class="nav-label">Finance</div>
 			<a href="/admin/fees"><span class="nav-icon">₹</span>Payments</a>
 			<div class="nav-label">Management</div>
-			<a href="/admin/complaints"><span class="nav-icon">▤</span>Complaints</a>
-			<a href="/admin/visitors"><span class="nav-icon">♧</span>Visitors</a>
-			<a href="/admin/notifications"><span class="nav-icon">⚑</span>Notifications</a>
+			<a href="/admin/complaints"><span class="nav-icon">▤</span><span class="nav-item">Complaints<?php if (($complaintCount ?? 0) > 0): ?><span class="badge"><?= (int) $complaintCount ?></span><?php endif; ?></span></a>
+			<a href="/admin/visitors"><span class="nav-icon">♧</span><span class="nav-item">Visitors<?php if (($visitorCount ?? 0) > 0): ?><span class="badge"><?= (int) $visitorCount ?></span><?php endif; ?></span></a>
+			<a href="/admin/notifications"><span class="nav-icon">⚑</span><span class="nav-item">Notifications<?php if (($notificationCount ?? 0) > 0): ?><span class="badge"><?= (int) $notificationCount ?></span><?php endif; ?></span></a>
 			<div class="nav-label">System</div>
 			<a href="/admin/reports"><span class="nav-icon">▥</span>Reports</a>
-			<a href="/admin/settings"><span class="nav-icon">⚙</span>Settings</a>
 			<a href="/admin/profile"><span class="nav-icon">◎</span>Profile</a>
 			<a href="/admin/users"><span class="nav-icon">⌁</span>Security</a>
 			<a class="logout" href="/logout.php"><span class="nav-icon">↪</span>Logout</a>
 		</nav>
 	</aside>
 	<div class="main">
-		<header class="topbar"><div class="account"><span></span><span class="avatar"><?= htmlspecialchars(strtoupper(substr($name, 0, 1))) ?></span><span><?= htmlspecialchars($name) ?>⌄</span></div></header>
+		<header class="topbar"><div class="account"><span></span><span class="avatar"><?= htmlspecialchars(strtoupper(substr($name, 0, 1))) ?></span><span><?= htmlspecialchars($name) ?></span></div></header>
 		<main class="dashboard">
 			<section class="welcome"><h1>Good morning, <?= htmlspecialchars($name) ?> </h1><p>Here's your complete system overview.</p></section>
 			<section class="stats">
 				<article class="stat"><span class="stat-label">Students</span><strong class="stat-value"><?= (int) $stats['total_students'] ?></strong><span class="stat-note">Registered users</span></article>
 				<article class="stat"><span class="stat-label">Wardens</span><strong class="stat-value"><?= (int) $stats['total_wardens'] ?></strong><span class="stat-note">Hostel staff</span></article>
-				<article class="stat"><span class="stat-label">Hostels</span><strong class="stat-value"><?= (int) $stats['total_hostels'] ?></strong><span class="stat-note">Room blocks</span></article>
+				<article class="stat"><span class="stat-label">Rooms</span><strong class="stat-value"><?= (int) $stats['total_rooms'] ?></strong><span class="stat-note">Managed room inventory</span></article>
 				<article class="stat"><span class="stat-label">Revenue</span><strong class="stat-value">NPR <?= number_format((float) $stats['total_collected'], 0) ?></strong><span class="stat-note">Collected payments</span></article>
 			</section>
 			<section class="overview-grid">
-				<article class="panel"><h2>System Overview</h2><div class="chart"><div class="chart-grid"></div><?php if ($monthlyOverview): ?><div class="chart-bars"><?php $maxRegistrations = max(array_column($monthlyOverview, 'registrations')) ?: 1; ?><?php foreach ($monthlyOverview as $month): ?><span class="bar" title="<?= htmlspecialchars($month['month']) ?>: <?= (int) $month['registrations'] ?> registrations" style="height: <?= max(10, round(((int) $month['registrations'] / $maxRegistrations) * 100)) ?>%"></span><?php endforeach; ?></div><p class="chart-caption">Student registrations, last <?= count($monthlyOverview) ?> months</p><?php else: ?><p class="chart-caption">No registration data available yet.</p><?php endif; ?></div></article>
+				<article class="panel"><h2>System Overview</h2><div class="chart"><div class="chart-grid"></div><?php if ($monthlyOverview): ?><div class="chart-bars"><?php $maxRegistrations = max(array_column($monthlyOverview, 'registrations')) ?: 1; ?><?php foreach ($monthlyOverview as $day): ?><span class="bar" title="<?= htmlspecialchars($day['label']) ?>: <?= (int) $day['registrations'] ?> registrations" style="height: <?= max(10, round(((int) $day['registrations'] / $maxRegistrations) * 100)) ?>%"></span><?php endforeach; ?></div><p class="chart-caption">Student registrations, last <?= count($monthlyOverview) ?> days</p><?php else: ?><p class="chart-caption">No registration data available for the last 7 days.</p><?php endif; ?></div></article>
 				<article class="panel"><h2>Pending Actions</h2><div class="actions"><div class="action"><span class="action-label">Warden registrations</span><strong class="action-value"><?= (int) $stats['pending_wardens'] ?></strong></div><div class="action"><span class="action-label">Pending complaints</span><strong class="action-value"><?= (int) $stats['pending_complaints'] ?></strong></div><div class="action"><span class="action-label">Pending fee payments</span><strong class="action-value"><?= (int) $stats['unpaid_fees'] ?></strong></div></div></article>
 			</section>
 			<section class="panel activity-panel"><h2>Recent Activities</h2><div class="activities"><?php if ($recentActivities): ?><?php foreach ($recentActivities as $activity): ?><div class="activity"><strong><?= htmlspecialchars($activity['action']) ?><?= !empty($activity['details']) ? ': ' . htmlspecialchars($activity['details']) : '' ?></strong><small><?= adminDashboardDate($activity['created_at']) ?></small></div><?php endforeach; ?><?php else: ?><p class="empty">No recent activities recorded.</p><?php endif; ?></div></section>

@@ -1,7 +1,9 @@
 services:
 
   php:
-    build: .
+    build:
+      context: .
+      dockerfile: PHP.Dockerfile
     container_name: php_app
     volumes:
       - ./SmartHostelManagementSystem:/var/www/html
@@ -18,7 +20,7 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: jobs
+      MYSQL_DATABASE: SmartHostel
       MYSQL_USER: student
       MYSQL_PASSWORD: student
     ports:

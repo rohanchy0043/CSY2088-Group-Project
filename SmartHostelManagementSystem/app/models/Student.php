@@ -80,7 +80,7 @@ class Student {
     }
 
     public static function getUnpaidFees($studentId) {
-        $stmt = db()->prepare("SELECT COUNT(*) FROM fees WHERE student_id = ? AND status IN ('unpaid', 'overdue')");
+        $stmt = db()->prepare("SELECT COUNT(*) FROM fees WHERE student_id = ? AND status IN ('unpaid', 'partial', 'overdue')");
         $stmt->execute([$studentId]);
         return $stmt->fetchColumn();
     }
@@ -92,7 +92,7 @@ class Student {
     }
 
     public static function getTotalFeesDue($studentId) {
-        $stmt = db()->prepare("SELECT SUM(amount) FROM fees WHERE student_id = ? AND status IN ('unpaid', 'overdue')");
+        $stmt = db()->prepare("SELECT SUM(GREATEST(amount - COALESCE(paid_amount, 0), 0)) FROM fees WHERE student_id = ? AND status IN ('unpaid', 'partial', 'overdue')");
         $stmt->execute([$studentId]);
         return $stmt->fetchColumn() ?? 0;
     }

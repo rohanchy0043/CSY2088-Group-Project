@@ -4,9 +4,10 @@ require_once __DIR__ . '/../../config/constants.php';
 
 class Visitor {
     public static function find($id) {
-        $stmt = db()->prepare("SELECT v.*, s.full_name, s.student_id, s.room_id, r.room_number 
+        $stmt = db()->prepare("SELECT v.*, s.id AS student_record_id, s.user_id, u.full_name, s.student_id, s.room_id, r.room_number 
                                FROM visitors v 
                                JOIN students s ON v.student_id = s.id 
+                       JOIN users u ON s.user_id = u.id
                                LEFT JOIN rooms r ON s.room_id = r.id 
                                WHERE v.id = ?");
         $stmt->execute([$id]);
