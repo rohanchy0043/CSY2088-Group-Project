@@ -1,0 +1,85 @@
+/* ============================================================
+   Table Styles
+   ============================================================ */
+
+.table-container {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.table-container table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.table-container thead {
+    background: #f8fafc;
+}
+
+.table-container th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: #475569;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.table-container td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.table-container tr:hover td {
+    background: #f8fafc;
+}
+
+.table-container tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* ===== Table Actions ===== */
+.table-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.table-actions .btn {
+    padding: 4px 10px;
+    font-size: 12px;
+}
+
+/* ===== Table Responsive ===== */
+.table-responsive {
+    overflow-x: auto;
+}
+
+.table-responsive table {
+    min-width: 600px;
+}
+
+/* ===== Empty State ===== */
+.table-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #94a3b8;
+}
+
+.table-empty i {
+    font-size: 40px;
+    display: block;
+    margin-bottom: 12px;
+}
+
+.table-empty p {
+    margin: 0;
+    font-size: 16px;
+}
