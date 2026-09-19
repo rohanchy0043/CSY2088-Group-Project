@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+
+# Runtime-generated uploads and local data
+SmartHostelManagementSystem/public/uploads/*
+!SmartHostelManagementSystem/public/uploads/.gitkeep
+
+# Local tooling and OS files
+.vscode/
+.idea/
+*.log
+Thumbs.db
+Desktop.ini

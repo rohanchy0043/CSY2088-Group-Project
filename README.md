@@ -1,0 +1,205 @@
+# Smart Hostel Management System
+
+Smart Hostel Management System is a PHP and MariaDB web application for managing hostel operations from one administration panel. It supports student accounts, wardens, administrators, rooms, fees, payments, complaints, visitors, meals, notices, and notifications.
+
+## Features
+
+### Student
+
+- View dashboard, room details, fees, complaints, visitors, meals, and notifications
+- Submit complaints and register visitors
+- View fee balances and payment history
+- Receive notifications when a complaint, visitor request, room allocation, or fee payment is updated
+- Update profile information
+
+### Warden
+
+- Manage students, rooms, room allocations, and hostel operations
+- Create and update fee structures
+- View student fee balances and record payments
+- View payment history and automatically update paid, partial, unpaid, and overdue statuses
+- Send fee payment notifications to students
+- Review and update complaints and visitor requests
+- Manage hostel notices, meals, and warden notifications
+
+### Administrator
+
+- Manage users, roles, account status, and invitations
+- View system-wide fee summaries and student payment records
+- Manage hostel information and notices
+- Review complaints, visitors, rooms, and reports
+- Send notifications and publish notices
+
+## Technology Stack
+
+- PHP 8.2+
+- MariaDB
+- PDO with the MySQL driver
+- HTML, CSS, and vanilla JavaScript
+- Docker and Docker Compose
+- Adminer for database administration
+
+## Project Structure
+
+```text
+.
+├── database.sql                         # Initial database schema and seed data
+├── docker-compose.yml                   # PHP, MariaDB, and Adminer services
+├── PHP.Dockerfile                       # PHP application image definition
+└── SmartHostelManagementSystem/
+    ├── app/
+    │   ├── controllers/                 # Request and business-flow handlers
+    │   ├── helpers/                     # Authentication, sessions, validation, redirects
+    │   ├── middleware/                  # Student, warden, and admin access checks
+    │   ├── models/                      # Database access and domain logic
+    │   └── views/                       # Application pages
+    ├── config/                          # Application and database configuration
+    └── public/                          # Public entry points and route dispatcher
+```
+
+## Requirements
+
+Choose one of the following:
+
+- Docker Desktop with Docker Compose (recommended)
+- PHP 8.2+, MariaDB/MySQL, and a PHP web server for local development
+
+## Run with Docker
+
+1. Clone or download the repository.
+2. Open a terminal in the repository root.
+3. Start the application:
+
+   ```bash
+   docker compose up --build
+   ```
+
+4. Open the application at [http://localhost:8000](http://localhost:8000).
+5. Open Adminer at [http://localhost:8080](http://localhost:8080).
+
+The database service uses the following development connection values:
+
+| Setting | Value |
+|---|---|
+| Host from the PHP container | `mysql` |
+| Host from the local machine | `localhost` |
+| Port | `3306` |
+| Database | `SmartHostel` |
+| Username | `student` |
+| Password | `student` |
+| MariaDB root password | `root` |
+
+For Adminer, use:
+
+- **System:** MySQL
+- **Server:** `mysql`
+- **Username:** `student`
+- **Password:** `student`
+- **Database:** `SmartHostel`
+
+Stop the services with:
+
+```bash
+docker compose down
+```
+
+To stop the services and remove the development database volume:
+
+```bash
+docker compose down -v
+```
+
+> `docker compose down -v` permanently removes the local MariaDB data volume. Use it only when you intentionally want a fresh database.
+
+## Database Initialization
+
+The initial schema is stored in `database.sql`. It is mounted into MariaDB's initialization directory and is executed automatically when the database volume is created for the first time.
+
+The application also creates or upgrades a small number of feature tables and columns when the database connection is initialized. If you change `database.sql` after the database has already been created, either apply the SQL manually or recreate the development volume.
+
+## Authentication and Roles
+
+The application has three roles:
+
+- `student`
+- `warden`
+- `admin`
+
+Users sign in through `/login.php`. Administrators can create or manage accounts from the administration panel. Do not commit real passwords, API keys, or production database credentials to the repository.
+
+## Fee and Payment Flow
+
+1. An administrator or warden configures an active fee structure.
+2. The application automatically generates the current month's fee for students who have an assigned room when a fee-related page is opened.
+3. A warden opens **Fee Management** and selects a student.
+4. The warden selects the exact fee month, enters the payment amount, method, and date, then saves the payment.
+5. The application writes the payment to `fee_payments`.
+6. The related fee record is updated with the paid amount and status.
+7. The student receives a **Fee Payment Received** notification.
+8. The warden and administrator fee summaries show the updated collected and outstanding amounts.
+
+Automatic monthly fee generation is request-driven. It runs when a relevant dashboard or fee page is opened; it is not a background cron job.
+
+## Important Routes
+
+| Area | Route |
+|---|---|
+| Landing page | `/` |
+| Login | `/login.php` |
+| Student dashboard | `/student/dashboard` |
+| Student fees | `/student/fees` |
+| Warden dashboard | `/warden/dashboard` |
+| Warden fee management | `/warden/fees` |
+| Admin dashboard | `/admin/dashboard` |
+| Admin fee overview | `/admin/fees` |
+
+## Development Notes
+
+- The application uses a custom route dispatcher in `public/router.php`.
+- Database access is provided through PDO in `config/database.php`.
+- The database configuration currently uses Docker service name `mysql` as the database host.
+- Application source is mounted into the PHP container, so most PHP and view changes are available immediately.
+- Use prepared statements for database queries and validate all user input.
+- Keep production credentials outside the repository and replace the development database credentials before deployment.
+
+## Troubleshooting
+
+### The application cannot connect to MariaDB
+
+Check that the database container is running:
+
+```bash
+docker compose ps
+docker compose logs mysql
+```
+
+If the database was initialized with invalid or outdated data, recreate the development volume:
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
+### Changes are not visible
+
+Confirm that the PHP container is running and that the source directory is mounted:
+
+```bash
+docker compose ps
+docker compose logs php
+```
+
+Refresh the browser after a POST/redirect flow and check the PHP container logs for validation or database errors.
+
+### PHP syntax validation
+
+Run syntax checks inside the application container:
+
+```bash
+docker exec php_app php -l /var/www/html/app/controllers/WardenController.php
+docker exec php_app php -l /var/www/html/app/models/Fee.php
+```
+
+## License
+
+No license file is currently included in this repository. Add a license before distributing the project publicly.
