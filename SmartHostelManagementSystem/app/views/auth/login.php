@@ -38,12 +38,18 @@ $success = sessionFlash('auth_success');
 		.password-wrap input { padding-right: 44px; }
 		.password-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: auto; margin: 0; padding: 4px; background: transparent; color: #64748b; }
 		.password-toggle:hover { background: transparent; color: #061426; transform: translateY(-50%); }
+<<<<<<< HEAD
 		.auth-visual { position: relative; min-height: 100%; background: radial-gradient(120% 90% at 30% 20%, #12335c 0%, #061426 70%); color: #fff; display: flex; align-items: flex-end; padding: clamp(2rem, 5vw, 4rem); overflow: hidden; }
 		.auth-visual::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(6,20,38,0) 40%, rgba(6,20,38,.88)); }
+=======
+		.auth-visual { position: relative; min-height: 100%; background: url('/assets/hero-image.png') center / cover; color: #fff; display: flex; align-items: flex-end; padding: clamp(2rem, 5vw, 4rem); overflow: hidden; }
+		.auth-visual::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(6,20,38,.08), rgba(6,20,38,.86)); }
+>>>>>>> main
 		.auth-visual-content { position: relative; max-width: 420px; }
 		.auth-visual-kicker { color: rgba(255,255,255,.72); font-size: .72rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; }
 		.auth-visual h2 { margin: .7rem 0 .8rem; font-family: 'Instrument Serif', serif; font-size: clamp(2.5rem, 4vw, 4.2rem); font-weight: 400; line-height: .95; letter-spacing: -.04em; }
 		.auth-visual p { color: rgba(255,255,255,.78); line-height: 1.65; margin: 0; }
+<<<<<<< HEAD
 
 		/* ===== Boxy hostel characters (move + track cursor) ===== */
 		.art { position: absolute; inset: 0 0 120px 0; pointer-events: none; }
@@ -80,11 +86,16 @@ $success = sessionFlash('auth_success');
 			50%     { margin-top: -12px; }
 		}
 
+=======
+>>>>>>> main
 		@media (max-width: 1024px) {
 			.auth-shell { min-height: 620px; }
 			.auth-card { padding: clamp(2rem, 4vw, 3.5rem); }
 			.auth-visual { padding: clamp(2rem, 4vw, 3.5rem); }
+<<<<<<< HEAD
 			.tower { left: 20%; } .orange { left: 4%; }
+=======
+>>>>>>> main
 		}
 		@media (max-height: 760px) and (min-width: 761px) {
 			.auth-page { padding-top: 1rem; padding-bottom: 1rem; }
@@ -97,7 +108,10 @@ $success = sessionFlash('auth_success');
 			.auth-visual { min-height: 280px; padding: 2rem; }
 			.auth-visual h2 { font-size: 2.8rem; }
 			.auth-card { padding: 2rem 1.5rem 3rem; }
+<<<<<<< HEAD
 			.art { display: none; }
+=======
+>>>>>>> main
 		}
 		@media (max-width: 420px) {
 			.auth-visual { min-height: 230px; padding: 1.5rem; }
@@ -112,6 +126,7 @@ $success = sessionFlash('auth_success');
 	<main class="auth-page">
 		<section class="auth-shell">
 			<aside class="auth-visual" aria-label="DormSync hostel interior">
+<<<<<<< HEAD
 
 				<!-- animated box characters -->
 				<div class="art" id="art">
@@ -145,6 +160,8 @@ $success = sessionFlash('auth_success');
 					</div>
 				</div>
 
+=======
+>>>>>>> main
 				<div class="auth-visual-content">
 					<span class="auth-visual-kicker">SMART HOSTEL MANAGEMENT</span>
 					<h2>A better way to manage hostel life.</h2>
@@ -159,7 +176,11 @@ $success = sessionFlash('auth_success');
 			<?php foreach ($errors as $error): ?>
 				<?php foreach ((array) $error as $message): ?><div class="message"><?= htmlspecialchars($message) ?></div><?php endforeach; ?>
 			<?php endforeach; ?>
+<<<<<<< HEAD
 			<form id="loginForm" method="post" action="/login.php">
+=======
+			<form method="post" action="/login.php">
+>>>>>>> main
 				<label for="email">Email</label>
 				<input id="email" name="email" type="email" placeholder="Enter your email" value="<?= htmlspecialchars(old('email')) ?>" required>
 				<label for="password">Password</label>
@@ -182,6 +203,11 @@ $success = sessionFlash('auth_success');
 			button.setAttribute('aria-label', input.type === 'password' ? 'Show password' : 'Hide password');
 		}
 	</script>
+<<<<<<< HEAD
 	<script src="/js/login.js"></script>
 </body>
 </html>
+=======
+</body>
+</html>
+>>>>>>> main
