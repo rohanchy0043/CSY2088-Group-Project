@@ -38,16 +38,53 @@ $success = sessionFlash('auth_success');
 		.password-wrap input { padding-right: 44px; }
 		.password-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: auto; margin: 0; padding: 4px; background: transparent; color: #64748b; }
 		.password-toggle:hover { background: transparent; color: #061426; transform: translateY(-50%); }
-		.auth-visual { position: relative; min-height: 100%; background: url('/assets/hero-image.png') center / cover; color: #fff; display: flex; align-items: flex-end; padding: clamp(2rem, 5vw, 4rem); overflow: hidden; }
-		.auth-visual::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(6,20,38,.08), rgba(6,20,38,.86)); }
+		.auth-visual { position: relative; min-height: 100%; background: radial-gradient(120% 90% at 30% 20%, #12335c 0%, #061426 70%); color: #fff; display: flex; align-items: flex-end; padding: clamp(2rem, 5vw, 4rem); overflow: hidden; }
+		.auth-visual::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(6,20,38,0) 40%, rgba(6,20,38,.88)); }
 		.auth-visual-content { position: relative; max-width: 420px; }
 		.auth-visual-kicker { color: rgba(255,255,255,.72); font-size: .72rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; }
 		.auth-visual h2 { margin: .7rem 0 .8rem; font-family: 'Instrument Serif', serif; font-size: clamp(2.5rem, 4vw, 4.2rem); font-weight: 400; line-height: .95; letter-spacing: -.04em; }
 		.auth-visual p { color: rgba(255,255,255,.78); line-height: 1.65; margin: 0; }
+
+		/* ===== Boxy hostel characters (move + track cursor) ===== */
+		.art { position: absolute; inset: 0 0 120px 0; pointer-events: none; }
+		.boxy { position: absolute; transition: transform .12s ease-out; will-change: transform; }
+		.face { position: absolute; display: flex; gap: 18px; }
+		.eye { width: 14px; height: 18px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+		.eye.white { background: #dbeafe; }
+		.pupil { width: 7px; height: 9px; background: #17171c; border-radius: 50%; will-change: transform; }
+
+		/* purple dorm tower — a box with windows */
+		.tower { width: 100px; height: 200px; background: #6a3df0; border-radius: 14px 14px 6px 6px; left: 16%; top: 22%; box-shadow: inset -10px -10px 0 rgba(0,0,0,.18); animation: floaty 6s ease-in-out 1.6s infinite; }
+		.tower .face { top: 26px; left: 30px; }
+		.win { position: absolute; width: 16px; height: 16px; background: rgba(255,255,255,.9); border-radius: 4px; }
+		.win.r1c1 { top: 78px; left: 20px; }  .win.r1c2 { top: 78px; right: 20px; }
+		.win.r2c1 { top: 112px; left: 20px; } .win.r2c2 { top: 112px; right: 20px; }
+		.win.r3c1 { top: 146px; left: 20px; } .win.r3c2 { top: 146px; right: 20px; }
+
+		/* orange box */
+		.orange { width: 130px; height: 100px; background: #ff7b33; border-radius: 16px; left: 6%; top: 52%; box-shadow: inset -10px -10px 0 rgba(0,0,0,.12); animation: floaty 5s ease-in-out 2s infinite; }
+		.orange .face { top: 32px; left: 34px; }
+		.orange .smile { position: absolute; width: 40px; height: 20px; border: 5px solid #17171c; border-top: none; border-radius: 0 0 40px 40px; top: 56px; left: 42px; }
+
+		/* slate box (navy-tinted so it pops on dark bg) */
+		.slate { width: 66px; height: 150px; background: #33507a; border-radius: 12px; left: 46%; top: 34%; box-shadow: inset -8px -8px 0 rgba(0,0,0,.25); animation: floaty 6.5s ease-in-out 2.3s infinite; }
+		.slate .face { top: 26px; left: 14px; gap: 12px; }
+
+		/* yellow box */
+		.yellow { width: 80px; height: 110px; background: #ffc632; border-radius: 18px 18px 12px 12px; left: 56%; top: 56%; box-shadow: inset -9px -9px 0 rgba(0,0,0,.1); animation: floaty 4.6s ease-in-out 2.6s infinite; }
+		.yellow .face { top: 34px; left: 26px; gap: 0; }
+		.yellow .beak { position: absolute; width: 36px; height: 6px; background: #17171c; border-radius: 4px; top: 62px; left: 38px; }
+
+		@keyframes floaty {
+			0%,100% { margin-top: 0; }
+			50%     { margin-top: -12px; }
+		}
+
 		@media (max-width: 1024px) {
 			.auth-shell { min-height: 620px; }
 			.auth-card { padding: clamp(2rem, 4vw, 3.5rem); }
 			.auth-visual { padding: clamp(2rem, 4vw, 3.5rem); }
+			.tower { left: 20%; } .orange { left: 4%; }
 		}
 		@media (max-height: 760px) and (min-width: 761px) {
 			.auth-page { padding-top: 1rem; padding-bottom: 1rem; }
@@ -60,6 +97,7 @@ $success = sessionFlash('auth_success');
 			.auth-visual { min-height: 280px; padding: 2rem; }
 			.auth-visual h2 { font-size: 2.8rem; }
 			.auth-card { padding: 2rem 1.5rem 3rem; }
+			.art { display: none; }
 		}
 		@media (max-width: 420px) {
 			.auth-visual { min-height: 230px; padding: 1.5rem; }
@@ -74,6 +112,39 @@ $success = sessionFlash('auth_success');
 	<main class="auth-page">
 		<section class="auth-shell">
 			<aside class="auth-visual" aria-label="DormSync hostel interior">
+
+				<!-- animated box characters -->
+				<div class="art" id="art">
+					<div class="boxy tower" data-depth="14">
+						<div class="win r1c1"></div><div class="win r1c2"></div>
+						<div class="win r2c1"></div><div class="win r2c2"></div>
+						<div class="win r3c1"></div><div class="win r3c2"></div>
+						<div class="face">
+							<div class="eye"><div class="pupil"></div></div>
+							<div class="eye"><div class="pupil"></div></div>
+						</div>
+					</div>
+					<div class="boxy orange" data-depth="22">
+						<div class="face">
+							<div class="eye"><div class="pupil"></div></div>
+							<div class="eye"><div class="pupil"></div></div>
+						</div>
+						<div class="smile"></div>
+					</div>
+					<div class="boxy slate" data-depth="10">
+						<div class="face">
+							<div class="eye white"><div class="pupil"></div></div>
+							<div class="eye white"><div class="pupil"></div></div>
+						</div>
+					</div>
+					<div class="boxy yellow" data-depth="18">
+						<div class="face">
+							<div class="eye"><div class="pupil"></div></div>
+						</div>
+						<div class="beak"></div>
+					</div>
+				</div>
+
 				<div class="auth-visual-content">
 					<span class="auth-visual-kicker">SMART HOSTEL MANAGEMENT</span>
 					<h2>A better way to manage hostel life.</h2>
@@ -88,7 +159,7 @@ $success = sessionFlash('auth_success');
 			<?php foreach ($errors as $error): ?>
 				<?php foreach ((array) $error as $message): ?><div class="message"><?= htmlspecialchars($message) ?></div><?php endforeach; ?>
 			<?php endforeach; ?>
-			<form method="post" action="/login.php">
+			<form id="loginForm" method="post" action="/login.php">
 				<label for="email">Email</label>
 				<input id="email" name="email" type="email" placeholder="Enter your email" value="<?= htmlspecialchars(old('email')) ?>" required>
 				<label for="password">Password</label>
@@ -111,5 +182,6 @@ $success = sessionFlash('auth_success');
 			button.setAttribute('aria-label', input.type === 'password' ? 'Show password' : 'Hide password');
 		}
 	</script>
+	<script src="/js/login.js"></script>
 </body>
 </html>
