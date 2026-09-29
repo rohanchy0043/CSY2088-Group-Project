@@ -21,6 +21,10 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+-- Development administrator account. Change this password before production use.
+INSERT INTO users (username, email, password_hash, role, full_name, account_status)
+VALUES ('admin', 'admin@hostel.com', '$2y$10$VzVUifAX6k7mJqbFZ82Va.vbgvbUTGcAI2Tf3djZpMNCiad9g4eXW', 'admin', 'System Administrator', 'approved');
+
 -- ============================================================
 -- STUDENTS TABLE
 -- ============================================================
@@ -305,20 +309,3 @@ INSERT INTO fee_categories (name, description, amount) VALUES
 ('Mess Fee', 'Monthly mess/food charges', 3000.00),
 ('Electricity', 'Monthly electricity charges', 500.00),
 ('Maintenance', 'Annual maintenance fee', 1000.00);
-
--- Remove all user records and dependent demo data
-DELETE FROM notifications;
-DELETE FROM food_complaints;
-DELETE FROM meal_feedback;
-DELETE FROM meal_attendance;
-DELETE FROM meal_menus;
-DELETE FROM visitors;
-DELETE FROM complaints;
-DELETE FROM fee_payments;
-DELETE FROM fees;
-DELETE FROM fee_structures;
-DELETE FROM room_allocations;
-DELETE FROM logs;
-DELETE FROM wardens;
-DELETE FROM students;
-DELETE FROM users;

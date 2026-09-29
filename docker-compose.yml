@@ -9,10 +9,16 @@ services:
       - ./SmartHostelManagementSystem:/var/www/html
     working_dir: /var/www/html
     command: php -S 0.0.0.0:8000 -t /var/www/html/public /var/www/html/public/router.php
+    environment:
+      DB_HOST: mysql
+      DB_NAME: SmartHostel
+      DB_USER: student
+      DB_PASSWORD: student
     ports:
       - "8000:8000"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
 
   mysql:
     image: mariadb:latest
@@ -23,6 +29,11 @@ services:
       MYSQL_DATABASE: SmartHostel
       MYSQL_USER: student
       MYSQL_PASSWORD: student
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
     ports:
       - "3306:3306"
     volumes:
@@ -36,7 +47,8 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
 
 volumes:
   mysqldata:
