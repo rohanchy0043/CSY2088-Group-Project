@@ -10,20 +10,13 @@ if ($path !== '/' && is_file($file)) {
 }
 
 require_once __DIR__ . '/../config/app.php';
+require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../app/helpers/auth.php';
 require_once __DIR__ . '/../app/helpers/redirect.php';
 require_once __DIR__ . '/../app/helpers/validation.php';
 require_once __DIR__ . '/../app/helpers/session.php';
 require_once __DIR__ . '/../app/helpers/response.php';
-require_once __DIR__ . '/../app/middleware/AuthMiddleware.php';
-require_once __DIR__ . '/../app/middleware/StudentMidddleware.php';
-require_once __DIR__ . '/../app/middleware/WardenMiddleware.php';
-require_once __DIR__ . '/../app/middleware/AdminMiddleware.php';
-
-require_once __DIR__ . '/../app/controllers/StudentController.php';
-require_once __DIR__ . '/../app/controllers/WardenController.php';
-require_once __DIR__ . '/../app/controllers/AdminController.php';
-require_once __DIR__ . '/../app/controllers/MealController.php';
+require_once __DIR__ . '/../app/controllers/AuthController.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -31,6 +24,42 @@ if ($path === '/') {
     require __DIR__ . '/index.php';
     exit;
 }
+
+if ($path === '/login.php') {
+    if ($method === 'GET') {
+        AuthController::showLogin();
+    } elseif ($method === 'POST') {
+        AuthController::login();
+    } else {
+        abort(405, 'Method Not Allowed');
+    }
+    exit;
+}
+
+if ($path === '/register.php') {
+    if ($method === 'GET') {
+        AuthController::showRegister();
+    } elseif ($method === 'POST') {
+        AuthController::register();
+    } else {
+        abort(405, 'Method Not Allowed');
+    }
+    exit;
+}
+
+if ($path === '/logout.php' && in_array($method, ['GET', 'POST'], true)) {
+    AuthController::logout();
+    exit;
+}
+
+require_once __DIR__ . '/../app/middleware/AuthMiddleware.php';
+require_once __DIR__ . '/../app/middleware/StudentMiddleware.php';
+require_once __DIR__ . '/../app/middleware/WardenMiddleware.php';
+require_once __DIR__ . '/../app/middleware/AdminMiddleware.php';
+require_once __DIR__ . '/../app/controllers/StudentController.php';
+require_once __DIR__ . '/../app/controllers/WardenController.php';
+require_once __DIR__ . '/../app/controllers/AdminController.php';
+require_once __DIR__ . '/../app/controllers/MealController.php';
 
 if ($path === '/student/dashboard' && $method === 'GET') {
     StudentController::dashboard();
@@ -178,6 +207,7 @@ $adminRoutes = [
     '/admin/hostels' => ['GET', 'hostels'],
     '/admin/hostel-store' => ['POST', 'hostelStore'],
     '/admin/fees' => ['GET', 'fees'],
+    '/admin/fee-structure-store' => ['POST', 'feeStructureStore'],
     '/admin/complaints' => ['GET', 'complaints'],
     '/admin/visitors' => ['GET', 'visitors'],
     '/admin/visitor-store' => ['POST', 'visitorStore'],
@@ -197,6 +227,14 @@ if (isset($adminRoutes[$path])) {
         abort(405, 'Method Not Allowed');
     }
     AdminController::$action();
+    exit;
+}
+
+if (preg_match('#^/admin/fee-structure-update/(\d+)$#', $path, $matches)) {
+    if ($method !== 'POST') {
+        abort(405, 'Method Not Allowed');
+    }
+    AdminController::feeStructureUpdate((int) $matches[1]);
     exit;
 }
 

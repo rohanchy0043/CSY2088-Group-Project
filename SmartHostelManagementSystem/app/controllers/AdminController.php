@@ -340,7 +340,56 @@ class AdminController {
         AdminMiddleware::handle();
         Fee::generateCurrentMonth();
         $fees = Fee::all();
-        view('admin/fees', compact('fees'));
+        $structures = db()->query('SELECT * FROM fee_structures ORDER BY effective_from DESC, id DESC')->fetchAll();
+        view('admin/fees', compact('fees', 'structures'));
+    }
+
+    public static function feeStructureStore() {
+        AdminMiddleware::handle();
+        $data = $_POST;
+        $errors = validate($data, [
+            'name' => 'required|max:100',
+            'monthly_amount' => 'required|numeric|min:1',
+            'due_day' => 'required|numeric|min:1',
+            'status' => 'required|in:active,inactive'
+        ]);
+        if ((int) ($data['due_day'] ?? 0) < 1 || (int) ($data['due_day'] ?? 0) > 31) {
+            $errors['due_day'][] = 'Due day must be between 1 and 31.';
+        }
+        if ((float) ($data['monthly_amount'] ?? 0) <= 0) {
+            $errors['monthly_amount'][] = 'Monthly amount must be greater than 0.';
+        }
+        if (!empty($errors)) {
+            redirectWithErrors('/admin/fees', $errors);
+            return;
+        }
+        $stmt = db()->prepare('INSERT INTO fee_structures (name, monthly_amount, due_day, effective_from, status, created_by) VALUES (?, ?, ?, CURDATE(), ?, ?)');
+        $stmt->execute([trim($data['name']), $data['monthly_amount'], $data['due_day'], $data['status'], currentUserId()]);
+        redirectWithSuccess('/admin/fees', 'Fee structure created successfully.');
+    }
+
+    public static function feeStructureUpdate($id) {
+        AdminMiddleware::handle();
+        $data = $_POST;
+        $errors = validate($data, [
+            'name' => 'required|max:100',
+            'monthly_amount' => 'required|numeric|min:1',
+            'due_day' => 'required|numeric|min:1',
+            'status' => 'required|in:active,inactive'
+        ]);
+        if ((int) ($data['due_day'] ?? 0) < 1 || (int) ($data['due_day'] ?? 0) > 31) {
+            $errors['due_day'][] = 'Due day must be between 1 and 31.';
+        }
+        if ((float) ($data['monthly_amount'] ?? 0) <= 0) {
+            $errors['monthly_amount'][] = 'Monthly amount must be greater than 0.';
+        }
+        if (!empty($errors)) {
+            redirectWithErrors('/admin/fees', $errors);
+            return;
+        }
+        $stmt = db()->prepare('UPDATE fee_structures SET name = ?, monthly_amount = ?, due_day = ?, status = ?, updated_at = NOW() WHERE id = ?');
+        $stmt->execute([trim($data['name']), $data['monthly_amount'], $data['due_day'], $data['status'], (int) $id]);
+        redirectWithSuccess('/admin/fees', 'Fee structure updated successfully.');
     }
 
     public static function complaints() {

@@ -6,7 +6,7 @@ require_once __DIR__ . '/../models/Complaint.php';
 require_once __DIR__ . '/../models/Visitor.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/Notice.php';
-require_once __DIR__ . '/../middleware/StudentMidddleware.php';
+require_once __DIR__ . '/../middleware/StudentMiddleware.php';
 require_once __DIR__ . '/../helpers/auth.php';
 require_once __DIR__ . '/../helpers/redirect.php';
 require_once __DIR__ . '/../helpers/session.php';

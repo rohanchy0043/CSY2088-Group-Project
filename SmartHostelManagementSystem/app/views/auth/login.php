@@ -17,8 +17,8 @@ $success = sessionFlash('auth_success');
 		* { box-sizing: border-box; }
 		body { margin: 0; background: #061426; color: #1e293b; font-family: 'Inter', sans-serif; }
 		.auth-page { min-height: 100dvh; display: grid; place-items: center; padding: clamp(1rem, 3vw, 3rem); }
-		.auth-shell { width: min(1120px, 100%); min-height: 680px; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); background: #fff; box-shadow: 0 24px 70px rgba(0, 0, 0, .28); }
-		.auth-card { padding: clamp(2rem, 5vw, 5.5rem); display: flex; flex-direction: column; justify-content: center; }
+		.auth-shell { width: min(1120px, 100%); min-height: 680px; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); background: #fff; box-shadow: 0 24px 70px rgba(0, 0, 0, .28); animation: shell-enter .75s cubic-bezier(.2,.75,.25,1) both; }
+		.auth-card { padding: clamp(2rem, 5vw, 5.5rem); display: flex; flex-direction: column; justify-content: center; animation: content-enter .7s .18s cubic-bezier(.2,.75,.25,1) both; }
 		h1 { margin: 0 0 8px; color: #061426; font-family: 'Instrument Serif', serif; font-size: clamp(2.8rem, 5vw, 4.3rem); font-weight: 400; letter-spacing: -.04em; line-height: .95; white-space: nowrap; }
 		.subtitle { margin: 0 0 28px; color: #64748b; font-size: .98rem; }
 		label { display: block; margin: 16px 0 7px; color: #061426; font-size: .82rem; font-weight: 600; }
@@ -38,18 +38,15 @@ $success = sessionFlash('auth_success');
 		.password-wrap input { padding-right: 44px; }
 		.password-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: auto; margin: 0; padding: 4px; background: transparent; color: #64748b; }
 		.password-toggle:hover { background: transparent; color: #061426; transform: translateY(-50%); }
-<<<<<<< HEAD
-		.auth-visual { position: relative; min-height: 100%; background: radial-gradient(120% 90% at 30% 20%, #12335c 0%, #061426 70%); color: #fff; display: flex; align-items: flex-end; padding: clamp(2rem, 5vw, 4rem); overflow: hidden; }
+		.password-toggle svg { display: block; width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+		.password-toggle .eye-hide, .password-toggle[aria-pressed="true"] .eye-show { display: none; }
+		.password-toggle[aria-pressed="true"] .eye-hide { display: block; }
+		.auth-visual { position: relative; min-height: 100%; background: radial-gradient(120% 90% at 30% 20%, #12335c 0%, #061426 70%); color: #fff; display: flex; align-items: flex-end; padding: clamp(2rem, 5vw, 4rem); overflow: hidden; animation: visual-enter .9s ease-out both; }
 		.auth-visual::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(6,20,38,0) 40%, rgba(6,20,38,.88)); }
-=======
-		.auth-visual { position: relative; min-height: 100%; background: url('/assets/hero-image.png') center / cover; color: #fff; display: flex; align-items: flex-end; padding: clamp(2rem, 5vw, 4rem); overflow: hidden; }
-		.auth-visual::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(6,20,38,.08), rgba(6,20,38,.86)); }
->>>>>>> main
-		.auth-visual-content { position: relative; max-width: 420px; }
+		.auth-visual-content { position: relative; max-width: 420px; animation: content-enter .75s .3s cubic-bezier(.2,.75,.25,1) both; }
 		.auth-visual-kicker { color: rgba(255,255,255,.72); font-size: .72rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; }
 		.auth-visual h2 { margin: .7rem 0 .8rem; font-family: 'Instrument Serif', serif; font-size: clamp(2.5rem, 4vw, 4.2rem); font-weight: 400; line-height: .95; letter-spacing: -.04em; }
 		.auth-visual p { color: rgba(255,255,255,.78); line-height: 1.65; margin: 0; }
-<<<<<<< HEAD
 
 		/* ===== Boxy hostel characters (move + track cursor) ===== */
 		.art { position: absolute; inset: 0 0 120px 0; pointer-events: none; }
@@ -59,7 +56,7 @@ $success = sessionFlash('auth_success');
 		.eye.white { background: #dbeafe; }
 		.pupil { width: 7px; height: 9px; background: #17171c; border-radius: 50%; will-change: transform; }
 
-		/* purple dorm tower — a box with windows */
+		/* Purple dorm tower with windows */
 		.tower { width: 100px; height: 200px; background: #6a3df0; border-radius: 14px 14px 6px 6px; left: 16%; top: 22%; box-shadow: inset -10px -10px 0 rgba(0,0,0,.18); animation: floaty 6s ease-in-out 1.6s infinite; }
 		.tower .face { top: 26px; left: 30px; }
 		.win { position: absolute; width: 16px; height: 16px; background: rgba(255,255,255,.9); border-radius: 4px; }
@@ -85,17 +82,19 @@ $success = sessionFlash('auth_success');
 			0%,100% { margin-top: 0; }
 			50%     { margin-top: -12px; }
 		}
+		@keyframes shell-enter { from { opacity: 0; transform: translateY(18px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+		@keyframes visual-enter { from { opacity: 0; } to { opacity: 1; } }
+		@keyframes content-enter { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+		@media (prefers-reduced-motion: reduce) {
+			*, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+			.boxy { transition: none; }
+		}
 
-=======
->>>>>>> main
 		@media (max-width: 1024px) {
 			.auth-shell { min-height: 620px; }
 			.auth-card { padding: clamp(2rem, 4vw, 3.5rem); }
 			.auth-visual { padding: clamp(2rem, 4vw, 3.5rem); }
-<<<<<<< HEAD
 			.tower { left: 20%; } .orange { left: 4%; }
-=======
->>>>>>> main
 		}
 		@media (max-height: 760px) and (min-width: 761px) {
 			.auth-page { padding-top: 1rem; padding-bottom: 1rem; }
@@ -108,10 +107,7 @@ $success = sessionFlash('auth_success');
 			.auth-visual { min-height: 280px; padding: 2rem; }
 			.auth-visual h2 { font-size: 2.8rem; }
 			.auth-card { padding: 2rem 1.5rem 3rem; }
-<<<<<<< HEAD
 			.art { display: none; }
-=======
->>>>>>> main
 		}
 		@media (max-width: 420px) {
 			.auth-visual { min-height: 230px; padding: 1.5rem; }
@@ -126,7 +122,6 @@ $success = sessionFlash('auth_success');
 	<main class="auth-page">
 		<section class="auth-shell">
 			<aside class="auth-visual" aria-label="DormSync hostel interior">
-<<<<<<< HEAD
 
 				<!-- animated box characters -->
 				<div class="art" id="art">
@@ -160,8 +155,6 @@ $success = sessionFlash('auth_success');
 					</div>
 				</div>
 
-=======
->>>>>>> main
 				<div class="auth-visual-content">
 					<span class="auth-visual-kicker">SMART HOSTEL MANAGEMENT</span>
 					<h2>A better way to manage hostel life.</h2>
@@ -176,38 +169,34 @@ $success = sessionFlash('auth_success');
 			<?php foreach ($errors as $error): ?>
 				<?php foreach ((array) $error as $message): ?><div class="message"><?= htmlspecialchars($message) ?></div><?php endforeach; ?>
 			<?php endforeach; ?>
-<<<<<<< HEAD
 			<form id="loginForm" method="post" action="/login.php">
-=======
-			<form method="post" action="/login.php">
->>>>>>> main
 				<label for="email">Email</label>
 				<input id="email" name="email" type="email" placeholder="Enter your email" value="<?= htmlspecialchars(old('email')) ?>" required>
 				<label for="password">Password</label>
 				<div class="password-wrap">
 					<input id="password" name="password" type="password" placeholder="Enter your password" required>
-					<button class="password-toggle" type="button" onclick="togglePassword('password', this)" aria-label="Show password">◉</button>
+					<button class="password-toggle" type="button" onclick="togglePassword('password', this)" aria-label="Show password" aria-pressed="false">
+					<svg class="eye-show" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+					<svg class="eye-hide" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a14.8 14.8 0 0 1-3.1 3.9M6.2 6.2C3.5 8.1 2 12 2 12s3.6 7 10 7a10.7 10.7 0 0 0 4.1-.8"/></svg>
+					</button>
 				</div>
-				<button type="submit">Login →</button>
+				<button type="submit">Login &rarr;</button>
 			</form>
 			<p class="muted">Don't have an account? <a href="/register.php">Create Account</a></p>
 			<div class="divider">or</div>
-			<a class="back" href="/">← Back to DormSync</a>
+			<a class="back" href="/">&larr; Back to DormSync</a>
 			</div>
 		</section>
 	</main>
 	<script>
 		function togglePassword(id, button) {
 			const input = document.getElementById(id);
-			input.type = input.type === 'password' ? 'text' : 'password';
-			button.setAttribute('aria-label', input.type === 'password' ? 'Show password' : 'Hide password');
+			const showPassword = input.type === 'password';
+			input.type = showPassword ? 'text' : 'password';
+			button.setAttribute('aria-pressed', String(showPassword));
+			button.setAttribute('aria-label', showPassword ? 'Hide password' : 'Show password');
 		}
 	</script>
-<<<<<<< HEAD
 	<script src="/js/login.js"></script>
 </body>
 </html>
-=======
-</body>
-</html>
->>>>>>> main

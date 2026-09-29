@@ -1,9 +1,9 @@
 <?php
 // Database configuration
-$host = 'mysql';
-$dbname = 'SmartHostel';
-$user = 'student';
-$pass = 'student';
+$host = getenv('DB_HOST') ?: 'mysql';
+$dbname = getenv('DB_NAME') ?: 'SmartHostel';
+$user = getenv('DB_USER') ?: 'student';
+$pass = getenv('DB_PASSWORD') ?: 'student';
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $pass);

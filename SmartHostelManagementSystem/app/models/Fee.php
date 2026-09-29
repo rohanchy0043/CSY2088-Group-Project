@@ -4,6 +4,7 @@ require_once __DIR__ . '/../../config/constants.php';
 
 class Fee {
     public static function generateCurrentMonth() {
+        db()->exec("UPDATE fees SET status = 'overdue' WHERE status IN ('unpaid', 'partial') AND due_date < CURDATE() AND paid_amount < amount");
         $month = date('Y-m-01');
         $today = date('Y-m-d');
         $stmt = db()->prepare("SELECT * FROM fee_structures WHERE status = 'active' AND effective_from <= ? ORDER BY effective_from DESC");

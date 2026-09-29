@@ -59,6 +59,11 @@ $userStats = [
 		.actions { display: flex; flex-wrap: wrap; gap: 6px; }
 		.actions form { margin: 0; }
 		.actions .action { margin: 0; width: auto; }
+		.actions button.action { background: #fff7ed; border-color: #fed7aa; color: #c2410c; }
+		.actions button.action:hover, .actions button.action:focus-visible { background: #ffedd5; border-color: #fb923c; color: #9a3412; }
+		.actions button.action:focus-visible { outline: 2px solid #fb923c; outline-offset: 2px; }
+		.actions button.action.danger { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+		.actions button.action.danger:hover, .actions button.action.danger:focus-visible { background: #fee2e2; border-color: #f87171; color: #991b1b; }
 		.panel-header { align-items: center; display: flex; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
 		.panel-header h2 { margin: 0; }
 		.add-user { background: #2563eb; border: 1px solid #2563eb; border-radius: 6px; color: #fff; display: inline-block; font-size: 13px; font-weight: 600; padding: 10px 13px; text-decoration: none; }

@@ -49,6 +49,9 @@ function fieldValue($key) {
 		.password-wrap { position: relative; }
 		.password-wrap input { padding-right: 44px; }
 		.password-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: auto; margin: 0; padding: 4px; background: transparent; color: #64748b; }
+		.password-toggle svg { display: block; width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+		.password-toggle .eye-hide, .password-toggle[aria-pressed="true"] .eye-show { display: none; }
+		.password-toggle[aria-pressed="true"] .eye-hide { display: block; }
 		@media (max-width: 520px) { .auth-card { padding: 26px 20px; } }
 	</style>
 </head>
@@ -82,9 +85,9 @@ function fieldValue($key) {
 				<label for="phone">Phone</label>
 				<input id="phone" name="phone" type="tel" inputmode="numeric" placeholder="+977 9812345678" value="<?= fieldValue('phone') ?: '+977 ' ?>">
 				<label for="password">Password</label>
-				<div class="password-wrap"><input id="password" name="password" type="password" required><button class="password-toggle" type="button" onclick="togglePassword('password', this)">◉</button></div>
+				<div class="password-wrap"><input id="password" name="password" type="password" required><button class="password-toggle" type="button" onclick="togglePassword('password', this)" aria-label="Show password" aria-pressed="false"><svg class="eye-show" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg><svg class="eye-hide" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a14.8 14.8 0 0 1-3.1 3.9M6.2 6.2C3.5 8.1 2 12 2 12s3.6 7 10 7a10.7 10.7 0 0 0 4.1-.8"/></svg></button></div>
 				<label for="password_confirmation">Confirm Password</label>
-				<div class="password-wrap"><input id="password_confirmation" name="password_confirmation" type="password" required><button class="password-toggle" type="button" onclick="togglePassword('password_confirmation', this)">◉</button></div>
+				<div class="password-wrap"><input id="password_confirmation" name="password_confirmation" type="password" required><button class="password-toggle" type="button" onclick="togglePassword('password_confirmation', this)" aria-label="Show password" aria-pressed="false"><svg class="eye-show" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg><svg class="eye-hide" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a14.8 14.8 0 0 1-3.1 3.9M6.2 6.2C3.5 8.1 2 12 2 12s3.6 7 10 7a10.7 10.7 0 0 0 4.1-.8"/></svg></button></div>
 				<?php if ($type === 'student'): ?><label class="checkbox"><input type="checkbox" required> I agree to the Terms & Privacy</label><?php endif; ?>
 				<button type="submit">Create <?= ucfirst($type) ?> Account →</button>
 			</form>
@@ -95,8 +98,11 @@ function fieldValue($key) {
 </main>
 <script>
 function togglePassword(id, button) {
-	const input = document.getElementById(id);
-	input.type = input.type === 'password' ? 'text' : 'password';
+    const input = document.getElementById(id);
+    const showPassword = input.type === 'password';
+    input.type = showPassword ? 'text' : 'password';
+    button.setAttribute('aria-pressed', String(showPassword));
+    button.setAttribute('aria-label', showPassword ? 'Hide password' : 'Show password');
 }
 </script>
 </body>

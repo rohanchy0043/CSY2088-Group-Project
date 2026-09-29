@@ -1,8 +1,4 @@
 <?php
-require_once __DIR__ . '/../models/User.php';
-require_once __DIR__ . '/../models/Student.php';
-require_once __DIR__ . '/../models/Warden.php';
-require_once __DIR__ . '/../models/WardenInvitation.php';
 require_once __DIR__ . '/../helpers/auth.php';
 require_once __DIR__ . '/../helpers/redirect.php';
 require_once __DIR__ . '/../helpers/validation.php';
@@ -27,6 +23,7 @@ class AuthController {
     }
 
     public static function login() {
+        require_once __DIR__ . '/../models/User.php';
         self::ensureAuthSchema();
         $email = $_POST['email'] ?? '';
         $password = $_POST['password'] ?? '';
@@ -61,6 +58,10 @@ class AuthController {
     }
 
     public static function register() {
+        require_once __DIR__ . '/../models/User.php';
+        require_once __DIR__ . '/../models/Student.php';
+        require_once __DIR__ . '/../models/Warden.php';
+        require_once __DIR__ . '/../models/WardenInvitation.php';
         self::ensureAuthSchema();
         $data = $_POST;
         $type = $data['account_type'] ?? '';
