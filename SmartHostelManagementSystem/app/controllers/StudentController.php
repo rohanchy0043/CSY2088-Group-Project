@@ -79,7 +79,12 @@ class StudentController {
 				$stmt->execute([$student['id']]);
 				$items = $stmt->fetchAll();
 				if (!$items) {
-					$rooms = db()->query("SELECT id, room_number, block, floor, capacity, current_occupancy FROM rooms WHERE status IN ('available', 'occupied') AND current_occupancy < capacity ORDER BY block, floor, room_number")->fetchAll();
+					$rooms = db()->query("SELECT r.id, r.room_number, r.block, r.floor, r.capacity, COALESCE(occupancy.student_count, 0) AS current_occupancy
+					                      FROM rooms r
+					                      LEFT JOIN (SELECT room_id, COUNT(*) AS student_count FROM students WHERE room_id IS NOT NULL GROUP BY room_id) occupancy ON occupancy.room_id = r.id
+					                      WHERE r.status <> 'maintenance'
+					                        AND COALESCE(occupancy.student_count, 0) < r.capacity
+					                      ORDER BY r.block, r.floor, r.room_number")->fetchAll();
 				}
 			}
 			if ($student && $section === 'fees') {
@@ -108,7 +113,11 @@ class StudentController {
 			}
 
 			$roomId = (int) ($_POST['room_id'] ?? 0);
-			$stmt = db()->prepare("SELECT id FROM rooms WHERE id = ? AND status IN ('available', 'occupied') AND current_occupancy < capacity");
+			$stmt = db()->prepare("SELECT r.id
+			                       FROM rooms r
+			                       LEFT JOIN (SELECT room_id, COUNT(*) AS student_count FROM students WHERE room_id IS NOT NULL GROUP BY room_id) occupancy ON occupancy.room_id = r.id
+			                       WHERE r.id = ? AND r.status <> 'maintenance'
+			                         AND COALESCE(occupancy.student_count, 0) < r.capacity");
 			$stmt->execute([$roomId]);
 			if (!$stmt->fetch()) {
 				redirectWithError('/student/room', 'Please select an available room.');

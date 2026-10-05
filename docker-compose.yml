@@ -35,7 +35,7 @@ services:
       timeout: 3s
       retries: 20
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysqldata:/var/lib/mysql
       - ./database.sql:/docker-entrypoint-initdb.d/database.sql 

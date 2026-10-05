@@ -2,7 +2,15 @@
 require_once __DIR__ . '/../../config/database.php';
 
 class WardenInvitation {
+    private static function ensureAssignedBlockColumn() {
+        $columns = db()->query('SHOW COLUMNS FROM warden_invitations')->fetchAll(PDO::FETCH_COLUMN);
+        if (!in_array('assigned_block', $columns, true)) {
+            db()->exec("ALTER TABLE warden_invitations ADD assigned_block VARCHAR(10) NOT NULL DEFAULT '' AFTER invited_email");
+        }
+    }
+
     public static function findValid($code, $email) {
+        self::ensureAssignedBlockColumn();
         $stmt = db()->prepare("SELECT * FROM warden_invitations WHERE invited_email = ? AND used_at IS NULL AND expires_at > NOW() ORDER BY id DESC LIMIT 1");
         $stmt->execute([$email]);
         $invitation = $stmt->fetch();
@@ -14,9 +22,10 @@ class WardenInvitation {
         return $stmt->execute([$userId, $id]);
     }
 
-    public static function create($email, $code, $expiresAt, $createdBy) {
-        $stmt = db()->prepare('INSERT INTO warden_invitations (invited_email, code_hash, expires_at, created_by) VALUES (?, ?, ?, ?)');
-        $stmt->execute([$email, password_hash($code, PASSWORD_DEFAULT), $expiresAt, $createdBy]);
+    public static function create($email, $assignedBlock, $code, $expiresAt, $createdBy) {
+        self::ensureAssignedBlockColumn();
+        $stmt = db()->prepare('INSERT INTO warden_invitations (invited_email, assigned_block, code_hash, expires_at, created_by) VALUES (?, ?, ?, ?, ?)');
+        $stmt->execute([$email, trim($assignedBlock), password_hash($code, PASSWORD_DEFAULT), $expiresAt, $createdBy]);
         return $code;
     }
 

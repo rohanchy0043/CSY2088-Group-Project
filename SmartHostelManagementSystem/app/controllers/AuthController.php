@@ -135,7 +135,10 @@ class AuthController {
                     'emergency_contact' => ''
                 ]);
             } else {
-                Warden::create(['user_id' => $userId]);
+                Warden::create([
+                    'user_id' => $userId,
+                    'assigned_block' => $invitation['assigned_block'] ?? ''
+                ]);
                 WardenInvitation::markUsed($invitation['id'], $userId);
             }
             db()->commit();
@@ -157,6 +160,7 @@ class AuthController {
         db()->exec("CREATE TABLE IF NOT EXISTS warden_invitations (
             id INT AUTO_INCREMENT PRIMARY KEY,
             invited_email VARCHAR(100) NOT NULL,
+            assigned_block VARCHAR(10) NOT NULL DEFAULT '',
             code_hash VARCHAR(255) NOT NULL,
             expires_at DATETIME NOT NULL,
             used_at DATETIME NULL,

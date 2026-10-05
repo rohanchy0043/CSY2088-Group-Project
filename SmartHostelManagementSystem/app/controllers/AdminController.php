@@ -15,15 +15,22 @@ require_once __DIR__ . '/../helpers/redirect.php';
 require_once __DIR__ . '/../helpers/session.php';
 
 class AdminController {
+    private static function availableBlocks() {
+        return db()->query('SELECT block FROM hostels UNION SELECT DISTINCT block FROM rooms ORDER BY block')->fetchAll(PDO::FETCH_COLUMN);
+    }
+
     public static function createWardenInvitation() {
         AdminMiddleware::handle();
         $email = $_POST['email'] ?? '';
+        $assignedBlock = trim($_POST['assigned_block'] ?? '');
         $expiresAt = str_replace('T', ' ', $_POST['expires_at'] ?? date('Y-m-d H:i:s', strtotime('+7 days')));
         $errors = validate([
             'email' => $email,
+            'assigned_block' => $assignedBlock,
             'expires_at' => $expiresAt
         ], [
             'email' => 'required|email',
+            'assigned_block' => 'required|max:10',
             'expires_at' => 'required'
         ]);
 
@@ -31,9 +38,13 @@ class AdminController {
             redirectWithErrors('/admin/users', $errors);
             return;
         }
+        if (!in_array($assignedBlock, self::availableBlocks(), true)) {
+            redirectWithErrors('/admin/users', ['assigned_block' => ['Select an existing hostel block.']]);
+            return;
+        }
 
         $code = strtoupper(bin2hex(random_bytes(4)));
-        WardenInvitation::create($email, $code, $expiresAt, currentUserId());
+        WardenInvitation::create($email, $assignedBlock, $code, $expiresAt, currentUserId());
         $_SESSION['invitation_code'] = $code;
         $_SESSION['invitation_email'] = $email;
         $_SESSION['invitation_expires_at'] = $expiresAt;
@@ -90,12 +101,14 @@ class AdminController {
         AdminMiddleware::handle();
         $users = User::all();
         $invitations = WardenInvitation::all();
-        view('admin/users', compact('users', 'invitations'));
+        $blocks = self::availableBlocks();
+        view('admin/users', compact('users', 'invitations', 'blocks'));
     }
 
     public static function userCreate() {
         AdminMiddleware::handle();
-        view('admin/users-create');
+        $blocks = self::availableBlocks();
+        view('admin/users-create', compact('blocks'));
     }
 
     public static function userStore() {
@@ -126,6 +139,13 @@ class AdminController {
         if (($data['role'] ?? '') === ROLE_STUDENT) {
             $studentErrors = validate($data, ['student_id' => 'required|unique:students']);
             $errors = array_merge($errors, $studentErrors);
+        } elseif (($data['role'] ?? '') === ROLE_WARDEN) {
+            $wardenErrors = validate($data, ['assigned_block' => 'required|max:10']);
+            $errors = array_merge($errors, $wardenErrors);
+            $assignedBlock = trim($data['assigned_block'] ?? '');
+            if ($assignedBlock !== '' && !in_array($assignedBlock, self::availableBlocks(), true)) {
+                $errors['assigned_block'][] = 'Select an existing hostel block.';
+            }
         }
 
         if (!empty($errors)) {
@@ -154,7 +174,7 @@ class AdminController {
             } elseif ($data['role'] === ROLE_WARDEN) {
                 Warden::create([
                     'user_id' => $userId,
-                    'assigned_block' => $data['assigned_block'] ?? ''
+                    'assigned_block' => trim($data['assigned_block'])
                 ]);
             }
             db()->commit();

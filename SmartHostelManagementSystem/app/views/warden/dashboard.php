@@ -60,6 +60,16 @@ function wardenDashboardStatus($status) {
 		.complaint small, .activity small { color: var(--muted); font-size: 12px; }
 		.activity { display: block; }
 		.activity strong { font-weight: 500; }
+		.request-row, .room-row { align-items: center; border-bottom: 1px solid var(--line); display: flex; gap: 12px; justify-content: space-between; padding: 12px 0; }
+		.request-row:first-child, .room-row:first-child { padding-top: 0; }
+		.request-row:last-child, .room-row:last-child { border-bottom: 0; padding-bottom: 0; }
+		.request-info strong, .room-info strong { display: block; font-size: 13px; margin-bottom: 4px; }
+		.request-info small, .room-info small { color: var(--muted); font-size: 12px; }
+		.request-actions { display: flex; gap: 6px; }
+		.request-actions form { margin: 0; }
+		.request-actions button { background: var(--blue); border: 0; border-radius: 5px; color: #fff; cursor: pointer; font: inherit; font-size: 12px; padding: 7px 9px; }
+		.request-actions button.reject { background: #fff; border: 1px solid #fecaca; color: #b91c1c; }
+		.panel-link { color: var(--blue); display: inline-block; font-size: 13px; font-weight: 600; margin-top: 14px; }
 		.empty { color: var(--muted); font-size: 13px; margin: 0; }
 		.activity-panel { margin-top: 22px; }
 		@media (max-width: 900px) { .sidebar { flex-basis: 200px; width: 200px; } .stats { grid-template-columns: repeat(2, 1fr); } }
@@ -76,6 +86,7 @@ function wardenDashboardStatus($status) {
 			<div class="nav-label">Hostel</div>
 			<a href="/warden/students"><span class="nav-icon">♙</span>Students</a>
 			<a href="/warden/rooms"><span class="nav-icon">▣</span>Rooms</a>
+			<a href="/warden/allocations"><span class="nav-icon">⌂</span><span class="nav-item">Room requests<?php if (($stats['pending_allocations_badge'] ?? 0) > 0): ?><span class="badge"><?= (int) $stats['pending_allocations_badge'] ?></span><?php endif; ?></span></a>
 			<a href="/warden/meals"><span class="nav-icon">🍽</span>Meals</a>
 			<a href="/warden/visitors"><span class="nav-icon">♧</span><span class="nav-item">Visitors<?php if (($stats['pending_visitors_badge'] ?? 0) > 0): ?><span class="badge"><?= (int) $stats['pending_visitors_badge'] ?></span><?php endif; ?></span></a>
 			<a href="/warden/notifications"><span class="nav-icon">⚑</span><span class="nav-item">Notifications<?php if (($notificationCount ?? 0) > 0): ?><span class="badge"><?= (int) $notificationCount ?></span><?php endif; ?></span></a>
@@ -102,6 +113,32 @@ function wardenDashboardStatus($status) {
 			<section class="main-grid">
 				<article class="panel"><h2>Room Occupancy</h2><div class="occupancy-head"><span class="muted">Current hostel occupancy</span><strong class="occupancy-value"><?= (int) $stats['occupancy_percent'] ?>%</strong></div><div class="progress" aria-label="Room occupancy <?= (int) $stats['occupancy_percent'] ?> percent"><span style="width: <?= min(100, (int) $stats['occupancy_percent']) ?>%"></span></div></article>
 				<article class="panel"><h2>Pending Complaints</h2><div class="complaints"><?php if ($recentComplaints): ?><?php foreach ($recentComplaints as $complaint): ?><div class="complaint"><span class="dot <?= htmlspecialchars($complaint['priority']) ?>"></span><div><strong><?= htmlspecialchars($complaint['subject']) ?></strong><small><?= htmlspecialchars($complaint['full_name']) ?> · <?= htmlspecialchars(wardenDashboardStatus($complaint['status'])) ?></small></div></div><?php endforeach; ?><?php else: ?><p class="empty">No complaints found.</p><?php endif; ?></div></article>
+			</section>
+			<section class="main-grid" style="margin-top:22px">
+				<article class="panel">
+					<h2>Pending room requests</h2>
+					<?php if ($pendingRoomRequests): ?>
+						<?php foreach ($pendingRoomRequests as $request): ?>
+							<div class="request-row">
+								<div class="request-info"><strong><?= htmlspecialchars($request['full_name']) ?> · <?= htmlspecialchars($request['student_id']) ?></strong><small>Room <?= htmlspecialchars($request['room_number']) ?> · <?= htmlspecialchars(wardenDashboardDate($request['request_date'])) ?></small></div>
+								<div class="request-actions">
+									<form method="post" action="/warden/allocation-action"><input type="hidden" name="allocation_id" value="<?= (int) $request['id'] ?>"><button name="action" value="approve" type="submit">Assign room</button></form>
+									<form method="post" action="/warden/allocation-action"><input type="hidden" name="allocation_id" value="<?= (int) $request['id'] ?>"><button class="reject" name="action" value="reject" type="submit">Reject</button></form>
+								</div>
+							</div>
+						<?php endforeach; ?>
+					<?php else: ?><p class="empty">No pending room requests.</p><?php endif; ?>
+					<a class="panel-link" href="/warden/allocations">Manage all room requests</a>
+				</article>
+				<article class="panel">
+					<h2>Available rooms</h2>
+					<?php if ($availableRooms): ?>
+						<?php foreach ($availableRooms as $room): ?>
+							<div class="room-row"><div class="room-info"><strong>Room <?= htmlspecialchars($room['room_number']) ?> · Block <?= htmlspecialchars($room['block']) ?></strong><small><?= (int) $room['capacity'] - (int) $room['current_occupancy'] ?> vacant spaces</small></div></div>
+						<?php endforeach; ?>
+					<?php else: ?><p class="empty">No rooms have vacancies.</p><?php endif; ?>
+					<a class="panel-link" href="/warden/rooms">View room inventory</a>
+				</article>
 			</section>
 			<section class="panel activity-panel"><h2>Recent Activities</h2><div class="activities"><?php if ($recentActivities): ?><?php foreach ($recentActivities as $activity): ?><div class="activity"><strong><?= htmlspecialchars($activity['action']) ?><?= $activity['details'] ? ': ' . htmlspecialchars($activity['details']) : '' ?></strong><small><?= wardenDashboardDate($activity['created_at']) ?></small></div><?php endforeach; ?><?php else: ?><p class="empty">No recent activities recorded.</p><?php endif; ?></div></section>
 		</main>

@@ -34,10 +34,11 @@ $error = sessionError();
     <h1>Room assignments</h1>
     <?php if ($success): ?><div class="message"><?= htmlspecialchars($success) ?></div><?php endif; ?>
     <?php if ($error): ?><div class="message error"><?= htmlspecialchars($error) ?></div><?php endif; ?>
+    <?php if ($missingAssignedBlock): ?><div class="message error">Your account has no assigned block. Ask an administrator to assign one before allocating rooms.</div><?php endif; ?>
 
     <section class="panel">
         <h2>Assign room directly</h2>
-        <?php if ($unassignedStudents && $rooms): ?>
+        <?php if (!$missingAssignedBlock && $unassignedStudents && $rooms): ?>
             <form method="post" action="/warden/assign-room" class="form-grid">
                 <select name="student_id" required>
                     <option value="">Select unassigned student</option>

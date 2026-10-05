@@ -51,6 +51,14 @@
                 <label for="student_id">Student ID</label>
                 <input id="student_id" name="student_id" placeholder="Enter student ID">
             </section>
+            <section id="wardenInformation" hidden>
+                <h2>Warden Information</h2>
+                <label for="assigned_block">Assigned Block</label>
+                <select id="assigned_block" name="assigned_block">
+                    <option value="">Select a block</option>
+                    <?php foreach ($blocks as $block): ?><option value="<?= htmlspecialchars($block) ?>"><?= htmlspecialchars($block) ?></option><?php endforeach; ?>
+                </select>
+            </section>
             <h2>Password</h2>
             <label for="password">Password</label>
             <input id="password" name="password" type="password" placeholder="Enter password" required>
@@ -65,10 +73,15 @@
 const role = document.getElementById('role');
 const studentInformation = document.getElementById('studentInformation');
 const studentId = document.getElementById('student_id');
+const wardenInformation = document.getElementById('wardenInformation');
+const assignedBlock = document.getElementById('assigned_block');
 function updateRoleFields() {
     const isStudent = role.value === 'student';
+    const isWarden = role.value === 'warden';
     studentInformation.hidden = !isStudent;
     studentId.required = isStudent;
+    wardenInformation.hidden = !isWarden;
+    assignedBlock.required = isWarden;
 }
 role.addEventListener('change', updateRoleFields);
 updateRoleFields();

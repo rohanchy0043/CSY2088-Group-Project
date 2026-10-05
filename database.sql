@@ -72,6 +72,7 @@ INSERT INTO hostels (name, block, status) VALUES ('Smart Hostel', 'A', 'active')
 CREATE TABLE warden_invitations (
     id INT AUTO_INCREMENT PRIMARY KEY,
     invited_email VARCHAR(100) NOT NULL,
+    assigned_block VARCHAR(10) NOT NULL DEFAULT '',
     code_hash VARCHAR(255) NOT NULL,
     expires_at DATETIME NOT NULL,
     used_at DATETIME NULL,

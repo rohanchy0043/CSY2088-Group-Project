@@ -35,24 +35,44 @@ class WardenController {
         WardenMiddleware::handle();
         $notificationCount = sidebarBadgeCount('warden_notifications', Notification::unreadCount(currentUserId()));
         $block = self::assignedBlock();
-        $stmt = db()->prepare("SELECT COALESCE(SUM(current_occupancy), 0) AS occupied, COALESCE(SUM(capacity), 0) AS capacity FROM rooms WHERE block = ?");
-        $stmt->execute([$block]);
-        $occupancy = $stmt->fetch();
-        $stmt = db()->prepare("SELECT COUNT(*) FROM rooms WHERE block = ?");
-        $stmt->execute([$block]);
-        $totalRooms = (int) $stmt->fetchColumn();
-        $stmt = db()->prepare("SELECT COUNT(*) FROM rooms WHERE block = ? AND status = 'available'");
-        $stmt->execute([$block]);
-        $availableRooms = (int) $stmt->fetchColumn();
-        $stmt = db()->prepare("SELECT COUNT(*) FROM rooms WHERE block = ? AND current_occupancy > 0");
-        $stmt->execute([$block]);
-        $occupiedRooms = (int) $stmt->fetchColumn();
+        $stmt = db()->prepare("SELECT COUNT(*) AS total_rooms,
+                                      SUM(CASE WHEN COALESCE(occupancy.student_count, 0) > 0 THEN 1 ELSE 0 END) AS occupied_rooms,
+                                      SUM(CASE WHEN r.status <> 'maintenance' AND COALESCE(occupancy.student_count, 0) < r.capacity THEN 1 ELSE 0 END) AS available_rooms,
+                                      COALESCE(SUM(occupancy.student_count), 0) AS occupied,
+                                      COALESCE(SUM(r.capacity), 0) AS capacity
+                               FROM rooms r
+                               LEFT JOIN (SELECT room_id, COUNT(*) AS student_count FROM students WHERE room_id IS NOT NULL GROUP BY room_id) occupancy ON occupancy.room_id = r.id
+                               WHERE UPPER(TRIM(r.block)) = ? OR UPPER(TRIM(r.block)) = CONCAT('BLOCK ', ?)");
+        $stmt->execute([$block, $block]);
+        $roomStats = $stmt->fetch();
+        $stmt = db()->prepare("SELECT r.id, r.room_number, r.block, r.capacity, COALESCE(occupancy.student_count, 0) AS current_occupancy
+                               FROM rooms r
+                               LEFT JOIN (SELECT room_id, COUNT(*) AS student_count FROM students WHERE room_id IS NOT NULL GROUP BY room_id) occupancy ON occupancy.room_id = r.id
+                               WHERE r.status <> 'maintenance'
+                                 AND COALESCE(occupancy.student_count, 0) < r.capacity
+                                 AND (UPPER(TRIM(r.block)) = ? OR UPPER(TRIM(r.block)) = CONCAT('BLOCK ', ?))
+                               ORDER BY r.room_number
+                               LIMIT 5");
+        $stmt->execute([$block, $block]);
+        $availableRooms = $stmt->fetchAll();
+        $stmt = db()->prepare("SELECT ra.id, ra.request_date, s.student_id, u.full_name, r.room_number, r.block, r.status, r.capacity,
+                                      (SELECT COUNT(*) FROM students assigned WHERE assigned.room_id = r.id) AS current_occupancy
+                               FROM room_allocations ra
+                               JOIN students s ON s.id = ra.student_id
+                               JOIN users u ON u.id = s.user_id
+                               JOIN rooms r ON r.id = ra.room_id
+                               WHERE ra.status = 'pending'
+                                 AND (UPPER(TRIM(r.block)) = ? OR UPPER(TRIM(r.block)) = CONCAT('BLOCK ', ?))
+                               ORDER BY ra.request_date ASC
+                               LIMIT 5");
+        $stmt->execute([$block, $block]);
+        $pendingRoomRequests = $stmt->fetchAll();
         $stats = [
             'total_students' => 0,
-            'total_rooms' => $totalRooms,
-            'available_rooms' => $availableRooms,
-            'occupied_rooms' => $occupiedRooms,
-            'occupancy_percent' => $occupancy['capacity'] > 0 ? round(($occupancy['occupied'] / $occupancy['capacity']) * 100) : 0,
+            'total_rooms' => (int) $roomStats['total_rooms'],
+            'available_rooms' => (int) $roomStats['available_rooms'],
+            'occupied_rooms' => (int) $roomStats['occupied_rooms'],
+            'occupancy_percent' => $roomStats['capacity'] > 0 ? round(($roomStats['occupied'] / $roomStats['capacity']) * 100) : 0,
             'pending_complaints' => 0,
             'pending_allocations' => 0,
             'pending_visitors' => 0,
@@ -66,9 +86,10 @@ class WardenController {
         $stmt->execute([$block]);
         $stats['pending_complaints'] = (int) $stmt->fetchColumn();
         $stats['pending_complaints_badge'] = sidebarBadgeCount('warden_complaints', $stats['pending_complaints']);
-        $stmt = db()->prepare("SELECT COUNT(*) FROM room_allocations a JOIN rooms r ON a.room_id = r.id WHERE a.status = 'pending' AND r.block = ?");
-        $stmt->execute([$block]);
+        $stmt = db()->prepare("SELECT COUNT(*) FROM room_allocations a JOIN rooms r ON a.room_id = r.id WHERE a.status = 'pending' AND (UPPER(TRIM(r.block)) = ? OR UPPER(TRIM(r.block)) = CONCAT('BLOCK ', ?))");
+        $stmt->execute([$block, $block]);
         $stats['pending_allocations'] = (int) $stmt->fetchColumn();
+        $stats['pending_allocations_badge'] = sidebarBadgeCount('warden_allocations', $stats['pending_allocations']);
         $stmt = db()->prepare("SELECT COUNT(*) FROM visitors v JOIN students s ON v.student_id = s.id LEFT JOIN rooms r ON s.room_id = r.id WHERE v.status = 'pending' AND (s.room_id IS NULL OR r.block = ?)");
         $stmt->execute([$block]);
         $stats['pending_visitors'] = (int) $stmt->fetchColumn();
@@ -81,7 +102,7 @@ class WardenController {
         $stmt->execute([$block]);
         $recentComplaints = $stmt->fetchAll();
         $recentActivities = db()->query("SELECT action, details, created_at FROM logs ORDER BY created_at DESC LIMIT 5")->fetchAll();
-        view('warden/dashboard', compact('stats', 'recentComplaints', 'recentActivities', 'notificationCount'));
+        view('warden/dashboard', compact('stats', 'recentComplaints', 'recentActivities', 'notificationCount', 'pendingRoomRequests', 'availableRooms'));
     }
 
     public static function section($section) {
@@ -326,17 +347,25 @@ class WardenController {
                        JOIN students s ON ra.student_id = s.id 
                        JOIN users u ON s.user_id = u.id
                        JOIN rooms r ON ra.room_id = r.id 
-                       WHERE ra.status = 'pending' AND r.block = ?
+                       WHERE ra.status = 'pending'
+                         AND (UPPER(TRIM(r.block)) = ? OR UPPER(TRIM(r.block)) = CONCAT('BLOCK ', ?))
                        ORDER BY ra.request_date ASC");
-        $stmt->execute([$block]);
+        $stmt->execute([$block, $block]);
         $allocations = $stmt->fetchAll();
-        $stmt = db()->prepare("SELECT id, room_number, block, capacity, current_occupancy FROM rooms WHERE block = ? AND status IN ('available','occupied') AND current_occupancy < capacity ORDER BY room_number");
-        $stmt->execute([$block]);
+        $stmt = db()->prepare("SELECT r.id, r.room_number, r.block, r.capacity, COALESCE(occupancy.student_count, 0) AS current_occupancy
+                               FROM rooms r
+                               LEFT JOIN (SELECT room_id, COUNT(*) AS student_count FROM students WHERE room_id IS NOT NULL GROUP BY room_id) occupancy ON occupancy.room_id = r.id
+                               WHERE (UPPER(TRIM(r.block)) = ? OR UPPER(TRIM(r.block)) = CONCAT('BLOCK ', ?))
+                                 AND r.status <> 'maintenance'
+                                 AND COALESCE(occupancy.student_count, 0) < r.capacity
+                               ORDER BY r.room_number");
+        $stmt->execute([$block, $block]);
         $rooms = $stmt->fetchAll();
         $stmt = db()->prepare("SELECT s.id, s.student_id, u.full_name FROM students s JOIN users u ON s.user_id = u.id LEFT JOIN rooms r ON s.room_id = r.id WHERE s.room_id IS NULL AND NOT EXISTS (SELECT 1 FROM room_allocations ra WHERE ra.student_id = s.id AND ra.status = 'pending') ORDER BY u.full_name");
         $stmt->execute();
         $unassignedStudents = $stmt->fetchAll();
-        view('warden/allocations', compact('allocations', 'rooms', 'unassignedStudents'));
+        $missingAssignedBlock = $block === '';
+        view('warden/allocations', compact('allocations', 'rooms', 'unassignedStudents', 'missingAssignedBlock'));
     }
 
     public static function assignRoom() {
@@ -344,9 +373,16 @@ class WardenController {
         $studentId = (int) ($_POST['student_id'] ?? 0);
         $roomId = (int) ($_POST['room_id'] ?? 0);
         $block = self::assignedBlock();
+        if ($block === '') {
+            redirectWithError('/warden/allocations', 'Your account has no assigned block. Ask an administrator to assign one before allocating rooms.');
+            return;
+        }
         $student = Student::find($studentId);
         $room = Room::find($roomId);
-        if (!$student || !empty($student['room_id']) || !$room || $room['block'] !== $block || $room['status'] === ROOM_MAINTENANCE || (int) $room['current_occupancy'] >= (int) $room['capacity']) {
+        $stmt = db()->prepare('SELECT COUNT(*) FROM students WHERE room_id = ?');
+        $stmt->execute([$roomId]);
+        $occupancy = (int) $stmt->fetchColumn();
+        if (!$student || !empty($student['room_id']) || !$room || strtoupper(preg_replace('/^block\s+/i', '', trim($room['block']))) !== $block || $room['status'] === ROOM_MAINTENANCE || $occupancy >= (int) $room['capacity']) {
             redirectWithError('/warden/allocations', 'Select an unassigned student and an available room in your block.');
             return;
         }
@@ -362,10 +398,13 @@ class WardenController {
             $stmt->execute([$roomId, $studentId]);
             Room::updateOccupancy($roomId);
             Room::updateStatus($roomId);
-            db()->commit();
             Fee::generateForStudent($studentId);
+            db()->commit();
         } catch (Throwable $exception) {
-            db()->rollBack();
+            if (db()->inTransaction()) {
+                db()->rollBack();
+            }
+            error_log('Warden direct room assignment failed: ' . $exception->getMessage());
             redirectWithError('/warden/allocations', 'Room assignment failed.');
             return;
         }
@@ -375,62 +414,98 @@ class WardenController {
     public static function approveAllocation() {
         WardenMiddleware::handle();
         $data = $_POST;
-        $allocationId = $data['allocation_id'] ?? null;
+        $allocationId = (int) ($data['allocation_id'] ?? 0);
         $action = $data['action'] ?? '';
 
-        if (!$allocationId || !in_array($action, ['approve', 'reject'])) {
+        if (!$allocationId || !in_array($action, ['approve', 'reject'], true)) {
             redirectWithError('/warden/allocations', 'Invalid request');
             return;
         }
 
-        $stmt = db()->prepare("SELECT * FROM room_allocations WHERE id = ? AND status = 'pending'");
-        $stmt->execute([$allocationId]);
-        $allocation = $stmt->fetch();
+        db()->beginTransaction();
+        try {
+            $stmt = db()->prepare("SELECT ra.*, r.block, r.room_number, r.capacity, r.status AS room_status, s.room_id AS student_room_id, s.user_id AS student_user_id
+                                   FROM room_allocations ra
+                                   JOIN rooms r ON r.id = ra.room_id
+                                   JOIN students s ON s.id = ra.student_id
+                                   WHERE ra.id = ? AND ra.status = 'pending'
+                                   FOR UPDATE");
+            $stmt->execute([$allocationId]);
+            $allocation = $stmt->fetch();
 
-        if (!$allocation) {
-            redirectWithError('/warden/allocations', 'Allocation not found or already processed');
+            if (!$allocation) {
+                db()->rollBack();
+                redirectWithError('/warden/allocations', 'Allocation not found or already processed.');
+                return;
+            }
+            if (strtoupper(preg_replace('/^block\s+/i', '', trim($allocation['block']))) !== self::assignedBlock()) {
+                db()->rollBack();
+                redirectWithError('/warden/allocations', 'You can only manage allocations in your assigned hostel block.');
+                return;
+            }
+            if ($action === 'approve' && $allocation['student_room_id'] !== null) {
+                db()->rollBack();
+                redirectWithError('/warden/allocations', 'This student already has a room assigned.');
+                return;
+            }
+
+            $status = $action === 'approve' ? ALLOCATION_APPROVED : ALLOCATION_REJECTED;
+            if ($action === 'approve') {
+                if ($allocation['room_status'] === ROOM_MAINTENANCE) {
+                    db()->rollBack();
+                    redirectWithError('/warden/allocations', 'This room is no longer available.');
+                    return;
+                }
+
+                $stmt = db()->prepare('SELECT COUNT(*) FROM students WHERE room_id = ?');
+                $stmt->execute([(int) $allocation['room_id']]);
+                if ((int) $stmt->fetchColumn() >= (int) $allocation['capacity']) {
+                    db()->rollBack();
+                    redirectWithError('/warden/allocations', 'This room is no longer available.');
+                    return;
+                }
+
+                $stmt = db()->prepare('UPDATE students SET room_id = ? WHERE id = ? AND room_id IS NULL');
+                $stmt->execute([(int) $allocation['room_id'], (int) $allocation['student_id']]);
+                if ($stmt->rowCount() !== 1) {
+                    throw new RuntimeException('The student room assignment was not saved.');
+                }
+                Room::updateOccupancy((int) $allocation['room_id']);
+                Room::updateStatus((int) $allocation['room_id']);
+                Fee::generateForStudent((int) $allocation['student_id']);
+            }
+
+            $stmt = db()->prepare('UPDATE room_allocations SET status = ?, approved_by = ?, approved_at = NOW() WHERE id = ? AND status = ?');
+            $stmt->execute([$status, currentUserId(), $allocationId, ALLOCATION_PENDING]);
+            if ($stmt->rowCount() !== 1) {
+                throw new RuntimeException('The room request status was not updated.');
+            }
+            db()->commit();
+        } catch (Throwable $exception) {
+            if (db()->inTransaction()) {
+                db()->rollBack();
+            }
+            error_log('Warden room request update failed: ' . $exception->getMessage());
+            redirectWithError('/warden/allocations', 'The room request could not be ' . ($action === 'approve' ? 'approved' : 'rejected') . '. No room was assigned.');
             return;
         }
-
-        $room = Room::find($allocation['room_id']);
-        if (!$room || $room['block'] !== self::assignedBlock()) {
-            redirectWithError('/warden/allocations', 'You can only manage allocations in your assigned hostel block.');
-            return;
-        }
-        $student = Student::find($allocation['student_id']);
-        if (!$student || !empty($student['room_id'])) {
-            redirectWithError('/warden/allocations', 'This student already has a room assigned.');
-            return;
-        }
-        if ($action === 'approve' && ($room['status'] === ROOM_MAINTENANCE || (int) $room['current_occupancy'] >= (int) $room['capacity'])) {
-            redirectWithError('/warden/allocations', 'This room is no longer available.');
-            return;
-        }
-
-        $status = $action === 'approve' ? ALLOCATION_APPROVED : ALLOCATION_REJECTED;
-
-        $stmt = db()->prepare("UPDATE room_allocations SET status = ?, approved_by = ?, approved_at = NOW() WHERE id = ?");
-        $stmt->execute([$status, currentUserId(), $allocationId]);
 
         if ($action === 'approve') {
-            // Assign room to student
-            $stmt = db()->prepare("UPDATE students SET room_id = ? WHERE id = ?");
-            $stmt->execute([$allocation['room_id'], $allocation['student_id']]);
-
-            // Update room occupancy
-            Room::updateOccupancy($allocation['room_id']);
-            Room::updateStatus($allocation['room_id']);
-            Fee::generateForStudent((int) $allocation['student_id']);
-
-            // Send notification to student
-            Notification::send($student['user_id'], 'Room Allocation Approved',
-                'Your room allocation request has been approved. You have been assigned room ' . 
-                db()->query("SELECT room_number FROM rooms WHERE id = " . $allocation['room_id'])->fetchColumn(),
-                'success'
-            );
+            try {
+                Notification::send(
+                    (int) $allocation['student_user_id'],
+                    'Room Allocation Approved',
+                    'Your room allocation request has been approved. You have been assigned room ' . $allocation['room_number'],
+                    'success'
+                );
+            } catch (Throwable $exception) {
+                error_log('Room assignment notification failed: ' . $exception->getMessage());
+                redirectWithError('/warden/allocations', 'Room request approved and student assigned, but the notification could not be sent.');
+                return;
+            }
         }
 
-        redirectWithSuccess('/warden/allocations', 'Allocation ' . $action . 'd successfully!');
+        redirectWithSuccess('/warden/allocations', $action === 'approve' ? 'Room request approved and assigned successfully.' : 'Room request rejected successfully.');
     }
 
     public static function fees() {

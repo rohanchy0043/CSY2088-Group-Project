@@ -43,7 +43,7 @@ $userStats = [
 		.stat-label { color: #718096; display: block; font-size: 12px; }
 		.stat-value { display: block; font-size: 25px; margin-top: 8px; }
 		label { color: #475569; display: block; font-size: 13px; font-weight: 600; margin: 13px 0 6px; }
-		input, button { border: 1px solid #cbd5e1; border-radius: 6px; font: inherit; padding: 11px 12px; width: 100%; }
+		input, select, button { border: 1px solid #cbd5e1; border-radius: 6px; font: inherit; padding: 11px 12px; width: 100%; }
 		button { background: #2563eb; border-color: #2563eb; color: #fff; cursor: pointer; font-weight: 600; margin-top: 16px; }
 		button:hover { background: #1d4ed8; }
 		.message { background: #ecfdf5; border-radius: 6px; color: #166534; margin-bottom: 14px; padding: 11px 12px; }
@@ -100,6 +100,11 @@ $userStats = [
 			<form method="post" action="/admin/invite-warden">
 				<label for="email">Warden email</label>
 				<input id="email" name="email" type="email" placeholder="warden@example.com" required>
+				<label for="invitation_assigned_block">Assigned block</label>
+				<select id="invitation_assigned_block" name="assigned_block" required>
+					<option value="">Select a block</option>
+					<?php foreach ($blocks as $block): ?><option value="<?= htmlspecialchars($block) ?>"><?= htmlspecialchars($block) ?></option><?php endforeach; ?>
+				</select>
 				<label for="expires_at">Expires</label>
 				<input id="expires_at" name="expires_at" type="datetime-local" required>
 				<button type="submit">Generate Invitation Code</button>
