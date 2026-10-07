@@ -8,6 +8,7 @@ require_once __DIR__ . '/../models/Complaint.php';
 require_once __DIR__ . '/../models/Visitor.php';
 require_once __DIR__ . '/../models/Notification.php';
 require_once __DIR__ . '/../models/Notice.php';
+require_once __DIR__ . '/../models/Meal.php';
 require_once __DIR__ . '/../helpers/auth.php';
 require_once __DIR__ . '/../helpers/redirect.php';
 require_once __DIR__ . '/../helpers/session.php';
@@ -34,6 +35,7 @@ class WardenController {
     public static function dashboard() {
         WardenMiddleware::handle();
         $notificationCount = sidebarBadgeCount('warden_notifications', Notification::unreadCount(currentUserId()));
+        $foodComplaintCount = Meal::pendingComplaintCount();
         $block = self::assignedBlock();
         $stmt = db()->prepare("SELECT COUNT(*) AS total_rooms,
                                       SUM(CASE WHEN COALESCE(occupancy.student_count, 0) > 0 THEN 1 ELSE 0 END) AS occupied_rooms,
@@ -86,6 +88,7 @@ class WardenController {
         $stmt->execute([$block]);
         $stats['pending_complaints'] = (int) $stmt->fetchColumn();
         $stats['pending_complaints_badge'] = sidebarBadgeCount('warden_complaints', $stats['pending_complaints']);
+        $stats['pending_food_complaints_badge'] = sidebarBadgeCount('warden_food_complaints', $foodComplaintCount);
         $stmt = db()->prepare("SELECT COUNT(*) FROM room_allocations a JOIN rooms r ON a.room_id = r.id WHERE a.status = 'pending' AND (UPPER(TRIM(r.block)) = ? OR UPPER(TRIM(r.block)) = CONCAT('BLOCK ', ?))");
         $stmt->execute([$block, $block]);
         $stats['pending_allocations'] = (int) $stmt->fetchColumn();

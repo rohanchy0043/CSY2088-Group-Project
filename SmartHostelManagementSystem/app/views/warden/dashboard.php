@@ -87,7 +87,7 @@ function wardenDashboardStatus($status) {
 			<a href="/warden/students"><span class="nav-icon">♙</span>Students</a>
 			<a href="/warden/rooms"><span class="nav-icon">▣</span>Rooms</a>
 			<a href="/warden/allocations"><span class="nav-icon">⌂</span><span class="nav-item">Room requests<?php if (($stats['pending_allocations_badge'] ?? 0) > 0): ?><span class="badge"><?= (int) $stats['pending_allocations_badge'] ?></span><?php endif; ?></span></a>
-			<a href="/warden/meals"><span class="nav-icon">🍽</span>Meals</a>
+			<a href="/warden/meals"><span class="nav-icon">🍽</span><span class="nav-item">Meals<?php if (($stats['pending_food_complaints_badge'] ?? 0) > 0): ?><span class="badge"><?= (int) $stats['pending_food_complaints_badge'] ?></span><?php endif; ?></span></a>
 			<a href="/warden/visitors"><span class="nav-icon">♧</span><span class="nav-item">Visitors<?php if (($stats['pending_visitors_badge'] ?? 0) > 0): ?><span class="badge"><?= (int) $stats['pending_visitors_badge'] ?></span><?php endif; ?></span></a>
 			<a href="/warden/notifications"><span class="nav-icon">⚑</span><span class="nav-item">Notifications<?php if (($notificationCount ?? 0) > 0): ?><span class="badge"><?= (int) $notificationCount ?></span><?php endif; ?></span></a>
 			<div class="nav-label">Management</div>

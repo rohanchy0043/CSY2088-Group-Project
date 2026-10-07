@@ -77,7 +77,7 @@ function adminDashboardDate($date) {
 			<a href="/admin/wardens"><span class="nav-icon">♜</span>Wardens</a>
 			<div class="nav-label">Hostels</div>
 			<a href="/admin/rooms"><span class="nav-icon">▤</span>Rooms</a>
-			<a href="/admin/meals"><span class="nav-icon">🍽</span>Meals</a>
+			<a href="/admin/meals"><span class="nav-icon">🍽</span><span class="nav-item">Meals<?php if (($stats['pending_food_complaints'] ?? 0) > 0): ?><span class="badge"><?= (int) $stats['pending_food_complaints'] ?></span><?php endif; ?></span></a>
 			<a href="/admin/meal-attendance"><span class="nav-icon">▥</span>Meal attendance</a>
 			<div class="nav-label">Finance</div>
 			<a href="/admin/fees"><span class="nav-icon">₹</span>Payments</a>
@@ -104,7 +104,7 @@ function adminDashboardDate($date) {
 			</section>
 			<section class="overview-grid">
 				<article class="panel"><h2>System Overview</h2><div class="chart"><div class="chart-grid"></div><?php if ($monthlyOverview): ?><div class="chart-bars"><?php $maxRegistrations = max(array_column($monthlyOverview, 'registrations')) ?: 1; ?><?php foreach ($monthlyOverview as $day): ?><span class="bar" title="<?= htmlspecialchars($day['label']) ?>: <?= (int) $day['registrations'] ?> registrations" style="height: <?= max(10, round(((int) $day['registrations'] / $maxRegistrations) * 100)) ?>%"></span><?php endforeach; ?></div><p class="chart-caption">Student registrations, last <?= count($monthlyOverview) ?> days</p><?php else: ?><p class="chart-caption">No registration data available for the last 7 days.</p><?php endif; ?></div></article>
-				<article class="panel"><h2>Pending Actions</h2><div class="actions"><div class="action"><span class="action-label">Warden registrations</span><strong class="action-value"><?= (int) $stats['pending_wardens'] ?></strong></div><div class="action"><span class="action-label">Pending complaints</span><strong class="action-value"><?= (int) $stats['pending_complaints'] ?></strong></div><div class="action"><span class="action-label">Pending fee payments</span><strong class="action-value"><?= (int) $stats['unpaid_fees'] ?></strong></div></div></article>
+				<article class="panel"><h2>Pending Actions</h2><div class="actions"><div class="action"><span class="action-label">Warden registrations</span><strong class="action-value"><?= (int) $stats['pending_wardens'] ?></strong></div><div class="action"><span class="action-label">Pending complaints</span><strong class="action-value"><?= (int) $stats['pending_complaints'] ?></strong></div><a class="action" href="/admin/meals"><span class="action-label">Food quality complaints</span><strong class="action-value"><?= (int) $stats['pending_food_complaints'] ?></strong></a><div class="action"><span class="action-label">Pending fee payments</span><strong class="action-value"><?= (int) $stats['unpaid_fees'] ?></strong></div></div></article>
 			</section>
 			<section class="panel activity-panel"><h2>Recent Activities</h2><div class="activities"><?php if ($recentActivities): ?><?php foreach ($recentActivities as $activity): ?><div class="activity"><strong><?= htmlspecialchars($activity['action']) ?><?= !empty($activity['details']) ? ': ' . htmlspecialchars($activity['details']) : '' ?></strong><small><?= adminDashboardDate($activity['created_at']) ?></small></div><?php endforeach; ?><?php else: ?><p class="empty">No recent activities recorded.</p><?php endif; ?></div></section>
 		</main>

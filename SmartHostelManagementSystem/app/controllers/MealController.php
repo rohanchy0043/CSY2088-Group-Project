@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../models/Meal.php';
 require_once __DIR__ . '/../models/Student.php';
 require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../models/Notification.php';
 require_once __DIR__ . '/../middleware/StudentMiddleware.php';
 require_once __DIR__ . '/../middleware/WardenMiddleware.php';
 require_once __DIR__ . '/../middleware/AdminMiddleware.php';
@@ -46,6 +47,7 @@ class MealController {
         $errors = validate($data, ['meal_type' => 'required|in:breakfast,lunch,dinner', 'category' => 'required|max:80', 'complaint_date' => 'required|date', 'description' => 'required']);
         if (!$student) { $errors['student'][] = 'Student profile not found.'; }
         $photoPath = null;
+        $uploadedPhoto = null;
         if (!empty($_FILES['photo']['name'])) {
             if ($_FILES['photo']['error'] !== UPLOAD_ERR_OK || $_FILES['photo']['size'] > 5 * 1024 * 1024) {
                 $errors['photo'][] = 'Photo must be smaller than 5 MB.';
@@ -55,21 +57,54 @@ class MealController {
                 if (!isset($allowed[$mime])) {
                     $errors['photo'][] = 'Only JPG, PNG, or WEBP photos are allowed.';
                 } else {
-                    $directory = PUBLIC_PATH . '/uploads/meal-complaints';
-                    if (!is_dir($directory)) { mkdir($directory, 0755, true); }
-                    $filename = bin2hex(random_bytes(12)) . '.' . $allowed[$mime];
-                    if (move_uploaded_file($_FILES['photo']['tmp_name'], $directory . '/' . $filename)) {
-                        $photoPath = '/uploads/meal-complaints/' . $filename;
-                    } else {
-                        $errors['photo'][] = 'Unable to save the uploaded photo.';
-                    }
+                    $uploadedPhoto = ['tmp_name' => $_FILES['photo']['tmp_name'], 'extension' => $allowed[$mime]];
                 }
             }
         }
         if (!empty($errors)) { redirectWithErrors('/student/meals', $errors); return; }
+        if ($uploadedPhoto) {
+            $directory = PUBLIC_PATH . '/uploads/meal-complaints';
+            if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
+                redirectWithError('/student/meals', 'Unable to prepare storage for the complaint photo.');
+                return;
+            }
+            $filename = bin2hex(random_bytes(12)) . '.' . $uploadedPhoto['extension'];
+            if (!move_uploaded_file($uploadedPhoto['tmp_name'], $directory . '/' . $filename)) {
+                redirectWithError('/student/meals', 'Unable to save the uploaded photo.');
+                return;
+            }
+            $photoPath = '/uploads/meal-complaints/' . $filename;
+        }
         $data['photo_path'] = $photoPath;
-        Meal::addComplaint($data, $student['id']);
-        redirectWithSuccess('/student/meals', 'Food complaint submitted.');
+        try {
+            $complaintId = Meal::addComplaint($data, $student['id']);
+        } catch (Throwable $exception) {
+            if ($photoPath && is_file(PUBLIC_PATH . $photoPath)) {
+                unlink(PUBLIC_PATH . $photoPath);
+            }
+            error_log('Food complaint submission failed: ' . $exception->getMessage());
+            redirectWithError('/student/meals', 'Your food complaint could not be submitted. Please try again.');
+            return;
+        }
+        $notificationFailed = false;
+        try {
+            $recipients = db()->query("SELECT id FROM users WHERE role IN ('admin', 'warden') AND account_status = 'approved'")->fetchAll(PDO::FETCH_COLUMN);
+            Notification::sendToUsers(
+                $recipients,
+                'New food quality complaint',
+                $student['full_name'] . ' submitted a ' . $data['category'] . ' complaint about ' . $data['meal_type'] . '. Review it in Meal Operations (complaint #' . $complaintId . ').',
+                'warning'
+            );
+        } catch (Throwable $exception) {
+            error_log('Food complaint staff notification failed: ' . $exception->getMessage());
+            $notificationFailed = true;
+        }
+        redirectWithSuccess(
+            '/student/meals',
+            $notificationFailed
+                ? 'Food complaint submitted, but staff notifications could not be sent. Staff can still review it in Meal Operations.'
+                : 'Food complaint submitted. The warden and administrator have been notified.'
+        );
     }
 
     public static function warden() {
@@ -102,8 +137,40 @@ class MealController {
         $data = $_POST;
         $errors = validate($data, ['id' => 'required|numeric', 'status' => 'required|in:pending,in-progress,resolved', 'resolution_notes' => 'max:500']);
         if (!empty($errors)) { redirectWithErrors('/warden/meals', $errors); return; }
-        Meal::updateComplaint((int) $data['id'], $data['status'], $data['resolution_notes'] ?? '', currentUserId());
-        redirectWithSuccess('/warden/meals', 'Food complaint updated.');
+        $complaint = Meal::complaint((int) $data['id']);
+        if (!$complaint) {
+            redirectWithError('/warden/meals', 'Food complaint not found.');
+            return;
+        }
+        try {
+            $updated = Meal::updateComplaint((int) $data['id'], $data['status'], trim($data['resolution_notes'] ?? ''), currentUserId());
+        } catch (Throwable $exception) {
+            error_log('Food complaint update failed: ' . $exception->getMessage());
+            redirectWithError('/warden/meals', 'The food complaint could not be updated. Please try again.');
+            return;
+        }
+        if (!$updated) {
+            redirectWithSuccess('/warden/meals', 'No changes were made to the food complaint.');
+            return;
+        }
+        $notificationFailed = false;
+        try {
+            Notification::send(
+                (int) $complaint['student_user_id'],
+                'Food complaint updated',
+                'Your ' . $complaint['meal_type'] . ' food complaint is now ' . str_replace('-', ' ', $data['status']) . (!empty($data['resolution_notes']) ? ': ' . trim($data['resolution_notes']) : '.'),
+                $data['status'] === 'resolved' ? 'success' : 'info'
+            );
+        } catch (Throwable $exception) {
+            error_log('Food complaint student notification failed: ' . $exception->getMessage());
+            $notificationFailed = true;
+        }
+        redirectWithSuccess(
+            '/warden/meals',
+            $notificationFailed
+                ? 'Food complaint updated, but the student could not be notified.'
+                : 'Food complaint updated and student notified.'
+        );
     }
 
     public static function admin() {

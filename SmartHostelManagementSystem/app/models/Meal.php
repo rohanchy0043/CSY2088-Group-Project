@@ -132,16 +132,36 @@ class Meal {
         return $stmt->fetchAll();
     }
 
+    public static function complaint($id) {
+        self::ensureTables();
+        $stmt = db()->prepare('SELECT c.*, s.user_id AS student_user_id, s.student_id, u.full_name
+                               FROM food_complaints c
+                               JOIN students s ON s.id = c.student_id
+                               JOIN users u ON u.id = s.user_id
+                               WHERE c.id = ?');
+        $stmt->execute([(int) $id]);
+        return $stmt->fetch();
+    }
+
+    public static function pendingComplaintCount() {
+        self::ensureTables();
+        return (int) db()->query("SELECT COUNT(*) FROM food_complaints WHERE status IN ('pending', 'in-progress')")->fetchColumn();
+    }
+
     public static function addComplaint($data, $studentId) {
         self::ensureTables();
         $stmt = db()->prepare('INSERT INTO food_complaints (student_id, meal_type, category, complaint_date, subject, description, photo_path) VALUES (?, ?, ?, ?, ?, ?, ?)');
-        return $stmt->execute([$studentId, $data['meal_type'], $data['category'], $data['complaint_date'], $data['subject'], $data['description'], $data['photo_path'] ?? null]);
+        if (!$stmt->execute([$studentId, $data['meal_type'], $data['category'], $data['complaint_date'], $data['subject'], $data['description'], $data['photo_path'] ?? null])) {
+            throw new RuntimeException('Food complaint could not be saved.');
+        }
+        return (int) db()->lastInsertId();
     }
 
     public static function updateComplaint($id, $status, $notes, $resolvedBy) {
         self::ensureTables();
         $stmt = db()->prepare('UPDATE food_complaints SET status = ?, resolution_notes = ?, resolved_by = ? WHERE id = ?');
-        return $stmt->execute([$status, $notes, $status === 'resolved' ? $resolvedBy : null, $id]);
+        $stmt->execute([$status, $notes, $status === 'resolved' ? $resolvedBy : null, $id]);
+        return $stmt->rowCount() > 0;
     }
 
 }

@@ -10,6 +10,7 @@ require_once __DIR__ . '/../models/WardenInvitation.php';
 require_once __DIR__ . '/../models/Notice.php';
 require_once __DIR__ . '/../models/Notification.php';
 require_once __DIR__ . '/../models/Hostel.php';
+require_once __DIR__ . '/../models/Meal.php';
 require_once __DIR__ . '/../helpers/auth.php';
 require_once __DIR__ . '/../helpers/redirect.php';
 require_once __DIR__ . '/../helpers/session.php';
@@ -66,6 +67,7 @@ class AdminController {
             'pending_complaints' => Complaint::countPending(),
             'unpaid_fees' => Fee::countUnpaid(),
             'pending_wardens' => db()->query("SELECT COUNT(*) FROM users WHERE role = 'warden' AND account_status = 'pending'")->fetchColumn(),
+            'pending_food_complaints' => Meal::pendingComplaintCount(),
             'total_collected' => Fee::getTotalCollected(),
             'total_due' => Fee::getTotalDue()
         ];
